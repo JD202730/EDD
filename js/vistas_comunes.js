@@ -68,7 +68,7 @@
       const fila = h('div', { class: 'fb-it' }, h('span', { class: 'ic ' + (it.ok === true ? 'ok' : it.ok === false ? 'mal' : 'info'), text: IC[it.ok] }), h('p', { html: mdi(it.html) }));
       if (it.toggle !== undefined && regrade) {
         const cb = h('input', { type: 'checkbox' }); cb.checked = !!it.ok;
-        cb.addEventListener('change', () => { ans.manual = ans.manual || {}; ans.manual[it.toggle] = cb.checked; regrade(); });
+        cb.addEventListener('change', () => { if (it.alter) it.alter(cb.checked); else { ans.manual = ans.manual || {}; ans.manual[it.toggle] = cb.checked; } regrade(); });
         fila.appendChild(h('label', null, cb, ' lo expliqué'));
       }
       nodo.appendChild(fila);

@@ -81,7 +81,24 @@ Etapa **A** = fundamentos · **B** = aplicación · **C** = dominio / trampas / 
 ### Nivel 8 — Retos integradores
 Combinan 1-7: elegir paradigma + complejidad, depurar recursión, BST→AVL, justificar decisiones, análisis completo de un algoritmo (preguntas "mixtas").
 
-## Formatos de pregunta (14) → motor de corrección
+## Modelo de parcial del profesor (analizado del Parcial 1, semanas 1–4)
+
+Se leyó `estructuras_de_datos_p1.pdf` para reconocer **cómo pregunta** el profesor (el contenido del próximo parcial, semanas 5–8, es
+recursión, paradigmas, árboles, BST y AVL; no incluye tablas hash ni material de las semanas 1–4). Rasgos del modelo y cómo los
+reproduce el entrenador:
+
+| Rasgo del parcial | Qué hace el entrenador |
+|---|---|
+| 5 preguntas × 1,0 punto, 120 minutos, individual, sin IA ni apuntes | **Parcial simulado**: 5 preguntas (una de cada tipo), 120 min, sin pistas ni teoría |
+| «Toda respuesta debe estar justificada» | V/F con **justificación escrita** (`vfj`, marca 30 % + justificación 70 %) y rúbricas visibles |
+| P1: V/F con justificación (0,2 c/u; la justificación vale más que la marca) | `pq-vf-*` (afirmaciones con trampa, por tema) |
+| P2: tabla de complejidades del peor caso, «amortizado» explícito, justificar las dos filas menos evidentes | `pq-tabla-*` (celdas de complejidad con normalización, avisa si faltó/sobró «amortizado») |
+| P3: complejidad de funciones: **variable**, **caso** y **regla** (suma, producto, costo oculto) | `pq-cx-*` (`cplx`): clase + variable + caso + regla + justificación; crecimiento verificado midiendo pasos |
+| P4: pila monótona en 4 literales (traza 0,35 · resultado 0,10 · implementación O(n) 0,45 · argumento amortizado 0,10); el O(n²) vale la mitad; caso borde (orden decreciente) | `pq-alg-*`: traza, resultado, código con casos borde y **media nota si es lento**, argumento (memoización, mezcla, backtracking, cambio de monedas, validar BST, inorden con pila, AVL) |
+| P5: listas enlazadas (insertar al final, eliminar en 4 casos «sin listas auxiliares», estado de enlaces + nº de comparaciones, por qué no O(1)) | `pq-prog-*` (BST insertar/eliminar con las mismas ideas, recursión, árboles, recorridos, AVL, backtracking) |
+| Sin «¿qué imprime?» ni definiciones sueltas | 17 plantillas básicas retiradas (`js/banco_retiro.js`) |
+
+## Formatos de pregunta (17) → motor de corrección
 
 | Formato | Tipo interno | Corrección |
 |---|---|---|
@@ -98,7 +115,10 @@ Combinan 1-7: elegir paradigma + complejidad, depurar recursión, BST→AVL, jus
 | Rotaciones AVL | `avl` | nodo, caso, raíz resultante y árbol final |
 | Comparación de conceptos | `clasificar` | cada afirmación a su categoría |
 | Razonamiento / contraejemplo | `opcion` / `abierta` | selección de contraejemplo o criterios |
-| Mixtas | `mixta` | partes de distinto tipo, ponderadas |
+| Mixtas | `mixta` | partes de distinto tipo, ponderadas (con `valor` muestra los puntos por literal) |
+| V/F con justificación escrita | `vfj` | marca (30 %) + criterios de la justificación (70 %), ajustables por el estudiante |
+| Complejidad con variable, caso y regla | `cplx` | clase, variable, caso y regla (selección) + justificación por criterios |
+| Taller interactivo de árboles | `taller` | movimientos validados fase por fase (modo estricto) |
 
 ## Distribución de la evaluación
 * **Teoría**: opcion, vf, abierta, clasificar. **Análisis y problemas**: salida, tabla, bigo, árboles, AVL. **Implementación**: codigo, completar, depurar.

@@ -4,15 +4,33 @@ Aplicación web **local y sin dependencias** para estudiar, practicar y evaluart
 algorítmicos, árboles, recorridos, BST y AVL**. El contenido sale de las diapositivas del profesor Jheyston Serrano
 (ver [`docs/TEMARIO.md`](docs/TEMARIO.md): temario organizado, convenciones del curso y qué es complemento).
 
-* **146 plantillas de ejercicio** en 8 niveles × 3 etapas, que generan variantes distintas en cada intento (valores,
-  árboles, secuencias de inserción y fragmentos de código cambian).
-* **14 formatos**: selección (una o varias), verdadero/falso con justificación, preguntas abiertas, análisis de código,
+* **226 plantillas** (209 activas; 17 preguntas «básicas» retiradas, ver más abajo) en 8 niveles × 3 etapas, que generan variantes
+  distintas en cada intento (valores, árboles, secuencias de inserción y fragmentos de código cambian).
+* **Modelo de parcial del profesor** (pregunta de 1,0 punto con literales): verdadero/falso **con justificación escrita**, tabla de
+  complejidades (con «amortizado»), complejidad con **variable + caso + regla + justificación**, algoritmo en 4 literales (trazado,
+  resultado, implementación con casos borde —el O(n²) vale la mitad—, argumento amortizado) y programación con casos borde y reglas
+  del enunciado. Ver *Parcial simulado*.
+* **17 formatos**: selección (una o varias), verdadero/falso con justificación, preguntas abiertas, análisis de código,
   trazado, implementar, completar, depurar, Big O (tiempo y espacio + justificación), construcción de árboles,
-  rotaciones AVL, comparaciones, razonamiento y preguntas mixtas.
+  rotaciones AVL, comparaciones, razonamiento, preguntas mixtas, **V/F con justificación**, **complejidad con variable/caso/regla** y **talleres interactivos de árboles** (se resuelven moviendo nodos).
+* **Taller interactivo de árboles** (BST y AVL): arrastras el nodo nuevo a su hueco, detectas el primer nodo desbalanceado,
+  clasificas el desbalance (LL/RR/LR/RL) y aplicas cada rotación arrastrando un hijo sobre su padre (derecha/izquierda se
+  deduce del lado del hijo). Para eliminar: tipo de eliminación y sustituto/papelera. **Modo estricto**: un movimiento
+  incorrecto no se acepta, el árbol no cambia y no se muestra el resultado; hay que intentarlo otra vez (pistas de 3 niveles
+  dentro del taller, cada una resta crédito). Funciona con mouse, dedo o teclado (tocar nodo + botones). Está en *Laboratorio →
+  Taller interactivo* (con ejemplos y operaciones propias, p. ej. `10, 20, 30, 40, 50, 25` o `-30` para eliminar) y como
+  ejercicios de práctica en los niveles 6 y 7 (no entran en los exámenes porque requieren arrastrar).
 * **Corrección real**: el código del estudiante **se ejecuta** contra pruebas; los árboles se verifican por estructura y
   propiedades (BST, AVL, inorden, alturas).
 * **Dos modos**: *Práctica guiada* (pistas progresivas, explicación de errores, dificultad adaptativa) y *Modo examen*
-  (sin pistas ni teoría; nota, informe por tema y revisión al final). Además *simulacros configurables* y *examen acumulativo*.
+  (sin pistas ni teoría; nota, informe por tema y revisión al final). Además *simulacros configurables*, *examen acumulativo* y el
+  **Parcial simulado**.
+* **Parcial simulado** (Examen → Parcial simulado): 5 preguntas de 1,0 punto (V/F con justificación · tabla de complejidades ·
+  complejidad de 3 funciones · algoritmo en 4 literales · programación con casos borde) de los temas del próximo parcial
+  (recursión, paradigmas, árboles, recorridos, BST, AVL), **120 minutos**, sin pistas y con **puntaje parcial por literal**; al
+  entregar ves la nota sobre 5,0 y los puntos por pregunta y literal (`0,23 / 0,45`).
+* **Justificaciones escritas**: se evalúan por criterios visibles (palabras clave); tú puedes ajustar cada criterio con las casillas
+  «lo expliqué» (autoevaluación). No hay IA ni servicios externos: todo funciona sin internet y sin costo.
 * **Laboratorio**: visualizador BST/AVL con animación de inserciones, eliminaciones, rotaciones y recorridos; visor de la
   pila de recursión; consola de Python.
 
@@ -61,8 +79,14 @@ js/arboles.js         árboles: BST/AVL, notación, generadores, dibujo SVG y an
 js/temario.js         niveles, etapas y conceptos (teoría breve + ejemplo + fuente)
 js/editor.js          editor de código con resaltado, números de línea y auto-sangría
 js/tipos.js, tipos2.js   tipos de pregunta: render + corrección + solución
+js/tipos3.js          tipos «vfj» (V/F con justificación) y «cplx» (complejidad con variable/caso/regla)
+js/taller.js          taller interactivo de árboles (arrastrar nodos, fases, validación estricta) y su tipo de pregunta «taller»
 js/banco.js           registro del banco y utilidades para escribir plantillas
 js/banco_n1.js … n8.js   plantillas de cada nivel
+js/banco_taller.js    plantillas de los talleres interactivos (solo práctica)
+js/banco_pq*.js       banco «tipo parcial»: V/F con justificación (pq), complejidades (pq_cplx), tablas (pq_tabla),
+                      algoritmo en 4 literales (pq_alg) y programación con casos borde (pq_prog)
+js/banco_retiro.js    lista de preguntas «básicas» retiradas (siguen registradas pero no se sirven)
 js/motor.js           estado, dominio, desbloqueos, selección adaptativa, errores, exámenes, recomendaciones
 js/vistas_*.js, app.js   pantallas y enrutador
 docs/TEMARIO.md       análisis de los PDF y temario organizado
@@ -112,10 +136,21 @@ Con la misma semilla una plantilla produce siempre la misma pregunta (así *Mis 
 | `clasificar` | `categorias`, `items:[{t, cat, why}]` |
 | `orden` | `items`, `correcto`, `inicial` |
 | `mixta` | `partes:[{titulo, peso, q:{…cualquier tipo…}}]` |
+| `taller` | `taller:{tipo:'avl'\|'bst', conv:'suc'\|'pred', arbol, ops:[{t:'ins',v}\|{t:'del',v}\|{t:'reb'}], finalEsperado}`, `pistasInternas:true` · ver `js/banco_taller.js`; la plantilla lleva `soloPractica:true` para quedar fuera de los exámenes |
+| `vfj` | `afirmacion`, `correcta`, `justif:{criterios:[{desc, claves}], modelo}`, `pesoMarca` (0,3 por defecto: la justificación vale más que la marca) |
+| `cplx` | `esperado:{clase, variable, caso, regla}`, `escala`, `variables`, `reglasOpc`, `justif`, `medir` (la prueba mide los pasos para verificar la clase) |
+| `tabla` + `cx:true` | las celdas se comparan como complejidades: `O(n²)`=`O(n^2)`, `O(n log n)`=`n*log n`; «amortizado» debe escribirse cuando la celda lo pide |
+
+Las plantillas «de parcial» llevan `parcial:true` y `slot:'vf'\|'tabla'\|'cplx'\|'alg'\|'prog'` (así el *Parcial simulado* elige una de cada tipo)
+y devuelven una `mixta` con `valor` (puntos totales) y `peso` por literal; mira `js/banco_pq*.js`.
 
 Ejercicios de código: `tests` son **expresiones de Python** (`e` se evalúa y se compara con `r`); `reglas` pueden ser
 `recursiva`, `sinBucles`, `conBucle`, `noRecursiva`, `sinAnidados`, `usa`/`noUsa` (regex); `maxLlamadas`/`maxSteps` sirven
 para exigir eficiencia (una solución exponencial se rechaza). `K.huecos(sol, huecos)` crea los `[[1]]` de *completar*.
+**Media nota por ineficiencia** (como en el parcial): una prueba con `ef:true` y `maxPasos` (presupuesto de pasos) se ejecuta con los
+*costos ocultos* de Python activados (`x in lista`, `A[1:]`, `pop(0)`, `insert`, `list + list`, `sorted`, `sum`… cuestan lo que
+recorren); si todas las pruebas de corrección pasan pero la de eficiencia no, el puntaje es la mitad. `PQ.codigoQ({…})`
+(en `banco_pq_alg.js`) genera las pruebas con una solución de referencia y calibra el presupuesto (×6 los pasos de la referencia).
 
 **Para validarla:** abre `pruebas.html` → *Banco completo*. Comprueba que la solución de referencia puntúa 100 %, que la
 respuesta en blanco / el código inicial **no**, que el tipo se renderiza y que el ciclo respuesta→corrección funciona.
@@ -128,7 +163,19 @@ niveles están en la lista `niveles` del mismo archivo.
 * **Intérprete de Python** (el que ejecuta el código del estudiante): 58 fragmentos (aritmética con int/float, cadenas,
   listas, dicts, comprensiones, f-strings, clases y herencia, excepciones, `lru_cache`, `deque`, recursión, errores de
   ejecución…) comparados **tal cual contra CPython 3.12**: salida estándar y tipo de excepción idénticos.
-* **Banco de preguntas:** cada plantilla se instancia con 30 semillas (146 plantillas × 30 = 4 380 instancias): la solución de referencia
+* **Talleres interactivos:** 6 plantillas × 25 semillas (150 ejercicios) resueltos fase por fase por un robot: en cada fase se
+  intenta primero un movimiento incorrecto (784 rechazos: el árbol no cambió ni avanzó la fase) y luego el correcto; el resultado
+  final coincide con el AVL/BST calculado por el motor. Además se probaron a mano, con arrastre real del mouse, la inserción
+  con rotación doble (LR), la eliminación con dos hijos, la papelera y el modo táctil (375 px, sin desbordes).
+* **Banco «tipo parcial»** (74 plantillas nuevas): todas las plantillas `pq-*` se instancian con varias semillas; la solución
+  de referencia puntúa 100 %, la respuesta en blanco no, el tipo se renderiza y completa su ciclo, y **la solución lenta
+  (O(n²)/exponencial) de cada pregunta de código puntúa ≈ 50 %**. Además, **60 complejidades se midieron con el intérprete**
+  (razón de pasos entre dos tamaños frente a la clase declarada: n, n², log n, 2ⁿ, …; botón «Complejidades medidas») y las soluciones
+  de referencia **y** las lentas (240 ejercicios de código) se re-ejecutaron en **CPython real** sin diferencias.
+* **Parcial simulado:** configuración → 5 preguntas (una por tipo) → entrega → nota sobre 5,0 con puntos por literal; probado de
+  punta a punta (incluida la nota parcial: marca invertida, justificaciones vacías, solución lenta) y con 30 parciales generados
+  y calificados con las soluciones de referencia (150 preguntas, todas al 100 %).
+* **Banco de preguntas (primera versión):** cada plantilla se instancia con 30 semillas (146 plantillas × 30 = 4 380 instancias): la solución de referencia
   puntúa 100 %, el código inicial / respuesta en blanco no, y cada tipo se **renderiza y completa su ciclo** respuesta →
   corrección. Todos los ejercicios de código y las salidas esperadas se re-ejecutaron en **CPython real** (solo difieren,
   a propósito, los ejercicios de eficiencia: la fuerza bruta es correcta en CPython pero el entrenador la rechaza por lenta).
@@ -138,8 +185,16 @@ niveles están en la lista `niveles` del mismo archivo.
   de examen), laboratorio con animaciones, vista móvil (375 px) y tema claro/oscuro; simulación de 288 respuestas y 18
   configuraciones de examen sin errores.
 
-Para repetirlas: `python pruebas/servidor_pruebas.py`, abre <http://127.0.0.1:8765/pruebas.html>, pulsa los tres botones y
-luego `python pruebas/comparar_con_cpython.py`.
+Para repetirlas: `python pruebas/servidor_pruebas.py`, abre <http://127.0.0.1:8765/pruebas.html>, pulsa los botones
+(intérprete, banco completo, AVL, talleres interactivos, complejidades medidas) y luego `python pruebas/comparar_con_cpython.py`.
+
+## Preguntas «básicas» retiradas
+
+El parcial del profesor no pregunta «¿qué imprime este programa?» ni vocabulario suelto, así que 17 plantillas se retiraron del
+entrenamiento (`js/banco_retiro.js`: `n1-pila-prof`, `n1-traza-valor`, `n1-ida-vuelta`, `n1-contar-llamadas`, `n1-cache`, `n1-comp`,
+`n1-base-linea`, `n1-vf`, `n2-conteo`, `n2-pred-tiempo`, `n4-vocab`, `n4-prof-alt`, `n4-perfecto-formula`, `n4-acceso-nodo`, `n4-vf`,
+`n7-altura-vacio`, `n8-lee-codigo-arbol`). Siguen registradas (los errores guardados se pueden abrir) pero ya no se sirven; para
+reactivarlas basta quitar su id de esa lista.
 
 ## Limitaciones conocidas (honestas)
 
@@ -154,5 +209,14 @@ luego `python pruebas/comparar_con_cpython.py`.
   explicar. Úsalas como autoevaluación guiada.
 * **Rojo-negro:** el PDF de AVL disponible llega hasta la diapositiva 20; lo que se dice de rojo-negro es complemento
   general (marcado como tal). Los dos PDF de la Semana 2 se usaron para el nivel 2 (Big O).
-* **Eficiencia como prueba:** se mide con un límite de *pasos* del intérprete, no con tiempo real.
+* **Eficiencia como prueba:** se mide con un límite de *pasos* del intérprete, no con tiempo real. Los *costos ocultos* de Python se
+  modelan solo para las operaciones listadas arriba (en las pruebas de eficiencia); otras operaciones ocultas cuentan como un paso.
+* **Justificaciones escritas:** se evalúan por palabras clave y criterios visibles (puedes ajustarlos a mano con «lo expliqué»); una
+  redacción muy distinta puede quedar sin detectar y mencionar palabras sin explicarlas puede dar un falso positivo. Compara siempre
+  tu texto con la respuesta modelo que se muestra al corregir.
+* **Parcial simulado:** reproduce el *modelo* del parcial del profesor (tipos de pregunta, puntajes por literal, justificaciones,
+  media nota por O(n²)) con contenido de recursión, paradigmas, árboles, recorridos, BST y AVL; **no** son preguntas del examen real
+  ni incluyen tablas hash (el profesor aún no las ve) ni material de las semanas 1–4.
+* **Taller interactivo:** si cambias de pestaña mientras se anima un giro, la animación se completa al volver. En pantallas
+  táctiles el dibujo del taller captura el gesto (no se desplaza la página mientras arrastras sobre él); desplázate desde los márgenes.
 * **Un solo usuario por navegador:** no hay cuentas ni sincronización (por diseño); usa exportar/importar progreso.

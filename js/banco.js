@@ -24,6 +24,7 @@
   Banco.filtrar = function (f) {
     f = f || {};
     return Banco.plantillas.filter(t =>
+      (f.todas || !t.basica) &&   // las preguntas «básicas» retiradas (banco_retiro.js) no se sirven
       (!f.niveles || f.niveles.includes(t.n)) && (!f.etapas || f.etapas.includes(t.e)) &&
       (!f.dif || (t.dif >= f.dif[0] && t.dif <= f.dif[1])) &&
       (!f.conceptos || t.c.some(c => f.conceptos.includes(c))) &&

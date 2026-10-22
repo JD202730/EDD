@@ -57,6 +57,7 @@
   let iniciado = false;
   App.iniciar = function () {
     if (iniciado) return; iniciado = true;
+    U.Store.del('ed_ia_v1');   // el lector con IA se quitó: borra cualquier clave de API que hubiera quedado guardada en este navegador
     document.documentElement.dataset.tema = M.config().tema || 'auto';
     window.addEventListener('hashchange', App.render);
     App.render();

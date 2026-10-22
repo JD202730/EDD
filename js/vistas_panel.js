@@ -104,7 +104,7 @@
         h('div', { class: 'acciones' }, h('a', { class: 'btn' + (des ? '' : ' sec'), href: des ? '#/practica/' + n + '/' + e : '#/nivel/' + n, 'aria-disabled': des ? null : 'true', onclick: ev => { if (!des) { ev.preventDefault(); Vc.toast('Primero completa la etapa anterior (≥ ' + M.config().umbral + ' %).'); } } }, des ? 'Practicar' : 'Bloqueada'))));
     });
     host.appendChild(g);
-    host.appendChild(h('div', { class: 'acciones' }, h('a', { class: 'btn sec', href: '#/examen/config/nivel-' + n }, '⏱ Examen de este nivel'), h('a', { class: 'btn sec', href: '#/teoria/' + n }, '📖 Teoría completa')));
+    host.appendChild(h('div', { class: 'acciones' }, h('a', { class: 'btn sec', href: '#/examen/config/nivel-' + n }, '⏱ Examen de este nivel'), h('a', { class: 'btn sec', href: '#/teoria/' + n }, '📖 Teoría completa'), (n === 6 || n === 7) ? h('a', { class: 'btn sec', href: '#/lab/taller' }, '✋ Taller interactivo (mover nodos)') : null));
     // conceptos
     host.appendChild(h('h2', { class: 'espacio', text: 'Conceptos del nivel' }));
     const lista = h('div', { class: 'card' });

@@ -189,6 +189,20 @@
   }
   const mdInline = s => inline(s);
 
+  /* ---------- complejidades escritas a mano: O(n²), O(n^2), O(n log n), O(1) amortizado… ---------- */
+  function parseCx(s) {
+    let t = norm(s).replace(/\s+/g, '');
+    const amort = /amort/.test(t);
+    t = t.replace(/\(?amortizad[oa]s?\)?|amort\.?/g, '');
+    t = t.replace(/²/g, '^2').replace(/³/g, '^3').replace(/ⁿ/g, '^n').replace(/[·×]/g, '*').replace(/log₂|log2|lg/g, 'log');
+    t = t.replace(/^[oθΘ]\(/, '(').replace(/^\((.*)\)$/, '$1').replace(/^\((.*)\)$/, '$1');
+    t = t.replace(/log\(([a-z]+)\)/g, 'log$1').replace(/nlog/g, 'n*log').replace(/([a-z])\*\1(?![a-z^])/g, '$1^2');
+    t = t.replace(/^2n$/, '2^n').replace(/^([a-z])2$/, '$1^2').replace(/^([a-z])3$/, '$1^3');
+    const base = t.split('*').sort().join('*');
+    return { base, amort };
+  }
+  const igualCx = (a, b) => { const pa = parseCx(a), pb = parseCx(b); return !!pa.base && pa.base === pb.base && pa.amort === pb.amort; };
+
   /* ---------- varios ---------- */
   function deepEq(a, b) { return JSON.stringify(a) === JSON.stringify(b); }
   function debounce(fn, ms) { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; }
@@ -198,5 +212,5 @@
     document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
   }
 
-  ET.U = { RNG, newSeed, esc, quitaAcentos, norm, normCompacto, fmtTiempo, fmtFecha, clamp, pct, sum, avg, uid, h, $, $$, vaciar, svgEl, Store, resaltarPy, bloqueCodigo, htmlCodigo, dedent, md, mdInline, deepEq, debounce, descargar };
+  ET.U = { RNG, newSeed, esc, quitaAcentos, norm, normCompacto, fmtTiempo, fmtFecha, clamp, pct, sum, avg, uid, h, $, $$, vaciar, svgEl, Store, parseCx, igualCx, resaltarPy, bloqueCodigo, htmlCodigo, dedent, md, mdInline, deepEq, debounce, descargar };
 })(typeof window !== 'undefined' ? window : globalThis);

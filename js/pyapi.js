@@ -39,6 +39,7 @@
     s.evaluar = function (expr, o) {
       o = o || {};
       it.steps = 0; it.depth = 0; it.t0 = Date.now(); it.calls = Object.create(null); it.file = 'prueba';
+      it.cargaOculta = !!o.cargaOculta;   // costos ocultos de Python (x in lista, A[1:], pop(0)…) solo en pruebas de eficiencia
       if (o.maxSteps) it.maxSteps = o.maxSteps;
       try {
         const v = it.evalExpr(expr);
@@ -130,9 +131,9 @@
     res.stdout = s.stdout;
     if (!s.ok) { res.cargaOk = false; res.errorCarga = s.error; return res; }
     for (const t of spec.tests || []) {
-      const got = s.evaluar(t.e, { maxSteps: spec.maxSteps || 1500000 });
-      const p = { e: t.e, desc: t.desc || t.e, ok: false };
-      if (!got.ok) { p.error = got.error; p.msg = textoError(got.error); }
+      const got = s.evaluar(t.e, { maxSteps: t.maxPasos || spec.maxSteps || 1500000, cargaOculta: !!t.ef });
+      const p = { e: t.e, desc: t.desc || t.e, ok: false, ef: !!t.ef };
+      if (!got.ok) { p.error = got.error; p.msg = textoError(got.error); if (t.ef && got.error && got.error.tipo === 'Limite') p.msg = 'Se agotó el presupuesto de pasos: la solución es demasiado lenta para este tamaño de entrada (¿ciclo doble?).'; }
       else {
         const want = s.evaluar(t.r);
         if (!want.ok) { p.ok = false; p.msg = 'Error interno en la prueba: ' + textoError(want.error); p.interno = true; }

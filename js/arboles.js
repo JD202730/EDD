@@ -278,8 +278,18 @@
   }
   const CFG = { dx: 44, dy: 54, r: 17, pad: 24 };
   function geom(opts) {
+    if (opts && opts.geom) return Object.assign({}, CFG, opts.geom);
     if (opts && opts.compacto) return { dx: 34, dy: 44, r: 14, pad: 18 };
     return CFG;
+  }
+  /** tamaño del lienzo: admite margen horizontal, desplazamiento vertical (bandeja) y niveles extra (huecos) */
+  function medidas(g, anchoN, prof, opts) {
+    const mx = (opts && opts.margenX) || 0, oy = (opts && opts.offsetY) || 0, ex = (opts && opts.extraNiveles) || 0;
+    return {
+      W: Math.max(1, anchoN) * g.dx + g.pad * 2 - g.dx + g.r * 2 + mx * 2,
+      H: (prof + 1 + ex) * g.dy + g.pad * 2 - g.dy + g.r * 2 + oy + ((opts && opts.etiquetas) ? 8 : 0),
+      X: p => g.pad + g.r + mx + p.x * g.dx, Y: p => g.pad + g.r + oy + p.y * g.dy
+    };
   }
   const etiquetaNodo = (n, modo) => {
     if (modo === 'factor') { const f = factor(n); return (f > 0 ? '+' : '') + f; }
@@ -299,13 +309,10 @@
       host.appendChild(U.h('div', { class: 'arbol-vacio', text: opts.vacio || 'Árbol vacío' }));
       return { svg: null, nodos: new Map(), resaltar() { }, limpiar() { } };
     }
-    const W = Math.max(1, L.ancho) * g.dx + g.pad * 2 - g.dx + g.r * 2;
-    const H = (L.prof + 1) * g.dy + g.pad * 2 - g.dy + g.r * 2 + (opts.etiquetas ? 8 : 0);
+    const { W, H, X, Y } = medidas(g, L.ancho, L.prof, opts);
     const svg = U.svgEl('svg', { viewBox: '0 0 ' + W + ' ' + H, class: 'arbol-svg', role: 'img', 'aria-label': 'Diagrama de árbol: ' + nota(t) });
     svg.style.width = Math.min(W, opts.maxAncho || 760) + 'px';
     svg.style.maxWidth = '100%';
-    const X = p => g.pad + g.r + p.x * g.dx;
-    const Y = p => g.pad + g.r + p.y * g.dy;
     const gEdges = U.svgEl('g', { class: 'aristas' }); const gNodes = U.svgEl('g', { class: 'nodos' });
     svg.appendChild(gEdges); svg.appendChild(gNodes);
     const refs = new Map();
@@ -333,7 +340,7 @@
     });
     host.appendChild(svg);
     return {
-      svg, nodos: refs,
+      svg, nodos: refs, X, Y, L, g, W, H,
       resaltar(v, clase, on) { const e = refs.get(String(v)); if (e) e.classList.toggle(clase, on !== false); },
       limpiar(clases) { refs.forEach(e => (clases || ['visitando', 'visitado', 'nuevo', 'desbalanceado', 'ruta', 'objetivo', 'error', 'sel']).forEach(c => e.classList.remove(c))); },
       conAristas: gEdges
@@ -367,11 +374,10 @@
     U.vaciar(host); host.classList.add('arbol-host');
     const LA = layout(A), LB = layout(B);
     const ancho = Math.max(LA.ancho, LB.ancho, 1), prof = Math.max(LA.prof, LB.prof);
-    const W = ancho * g.dx + g.pad * 2 - g.dx + g.r * 2, H = (prof + 1) * g.dy + g.pad * 2 - g.dy + g.r * 2;
+    const { W, H, X, Y } = medidas(g, ancho, prof, opts);
     const svg = U.svgEl('svg', { viewBox: '0 0 ' + W + ' ' + H, class: 'arbol-svg' });
     svg.style.width = Math.min(W, opts.maxAncho || 760) + 'px'; svg.style.maxWidth = '100%';
     host.appendChild(svg);
-    const X = p => g.pad + g.r + p.x * g.dx, Y = p => g.pad + g.r + p.y * g.dy;
     const keys = new Set([...LA.pos.keys(), ...LB.pos.keys()]);
     const gE = U.svgEl('g'); const gN = U.svgEl('g'); svg.appendChild(gE); svg.appendChild(gN);
     const els = new Map();

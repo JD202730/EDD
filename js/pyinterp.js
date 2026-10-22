@@ -99,6 +99,13 @@
       if (++this.steps > this.maxSteps) throw new PyLimit('Se superó el límite de pasos de ejecución (¿bucle infinito o recursión sin fin?)');
       if ((this.steps & 4095) === 0 && Date.now() - this.t0 > this.maxMs) throw new PyLimit('Se superó el tiempo máximo de ejecución (' + (this.maxMs / 1000) + ' s)');
     }
+    /** modo «costos ocultos» (cargaOculta): las operaciones de Python que recorren o copian una secuencia cuestan lo que recorren
+        (x in lista, A[1:], pop(0), insert, list + list, sorted, sum…). Se activa solo en las pruebas de eficiencia. */
+    costo(n) {
+      if (!this.cargaOculta || !(n > 0)) return;
+      this.steps += n;
+      if (this.steps > this.maxSteps) throw new PyLimit('Se superó el límite de pasos de ejecución (¿bucle infinito o recursión sin fin?)');
+    }
     tname(v) {
       if (v === null) return 'NoneType'; if (typeof v === 'boolean') return 'bool';
       if (typeof v === 'number') return Number.isInteger(v) ? 'int' : 'float';
@@ -183,9 +190,9 @@
       return true;
     }
     contains(c, x) {
-      if (typeof c === 'string') { if (typeof x !== 'string') throw this.mkExc('TypeError', "'in <string>' requires string as left operand, not " + this.tname(x)); return c.includes(x); }
-      if (Array.isArray(c)) return c.some(y => this.eq(x, y));
-      if (c instanceof PyTuple || c instanceof PyDeque) return c.a.some(y => this.eq(x, y));
+      if (typeof c === 'string') { if (typeof x !== 'string') throw this.mkExc('TypeError', "'in <string>' requires string as left operand, not " + this.tname(x)); this.costo(c.length); return c.includes(x); }
+      if (Array.isArray(c)) { if (this.cargaOculta) { const i = c.findIndex(y => this.eq(x, y)); this.costo(i < 0 ? c.length : i + 1); return i >= 0; } return c.some(y => this.eq(x, y)); }
+      if (c instanceof PyTuple || c instanceof PyDeque) { this.costo(c.a.length); return c.a.some(y => this.eq(x, y)); }
       if (c instanceof PyDict) return c.m.has(this.hk(x));
       if (c instanceof PySet) return c.m.has(this.hk(x));
       if (c instanceof PyRange) { if (!isIntLike(x)) return false; const v = toNum(x); const d = v - c.s; return (c.st > 0 ? v >= c.s && v < c.e : v <= c.s && v > c.e) && d % c.st === 0; }
@@ -322,9 +329,9 @@
     getItem(o, k) {
       if (k && k.__slice) {
         const sl = k;
-        if (Array.isArray(o)) return this.sliceIdx(o.length, sl.lo, sl.hi, sl.st).map(i => o[i]);
-        if (typeof o === 'string') return this.sliceIdx(o.length, sl.lo, sl.hi, sl.st).map(i => o[i]).join('');
-        if (o instanceof PyTuple) return new PyTuple(this.sliceIdx(o.a.length, sl.lo, sl.hi, sl.st).map(i => o.a[i]));
+        if (Array.isArray(o)) { const ix = this.sliceIdx(o.length, sl.lo, sl.hi, sl.st); this.costo(ix.length); return ix.map(i => o[i]); }
+        if (typeof o === 'string') { const ix = this.sliceIdx(o.length, sl.lo, sl.hi, sl.st); this.costo(ix.length); return ix.map(i => o[i]).join(''); }
+        if (o instanceof PyTuple) { const ix = this.sliceIdx(o.a.length, sl.lo, sl.hi, sl.st); this.costo(ix.length); return new PyTuple(ix.map(i => o.a[i])); }
         throw this.mkExc('TypeError', "'" + this.tname(o) + "' object is not subscriptable");
       }
       if (Array.isArray(o) || typeof o === 'string' || o instanceof PyTuple || o instanceof PyDeque || o instanceof PyRange) {
@@ -488,8 +495,8 @@
     arith(op, a, b) {
       if (op === '+') {
         if (typeof a === 'string' && typeof b === 'string') return a + b;
-        if (Array.isArray(a) && Array.isArray(b)) return a.concat(b);
-        if (a instanceof PyTuple && b instanceof PyTuple) return new PyTuple(a.a.concat(b.a));
+        if (Array.isArray(a) && Array.isArray(b)) { this.costo(a.length + b.length); return a.concat(b); }
+        if (a instanceof PyTuple && b instanceof PyTuple) { this.costo(a.a.length + b.a.length); return new PyTuple(a.a.concat(b.a)); }
       } else if (op === '*') {
         if ((typeof a === 'string' || Array.isArray(a) || a instanceof PyTuple) && isIntLike(b)) return this.rep(a, toNum(b));
         if (isIntLike(a) && (typeof b === 'string' || Array.isArray(b) || b instanceof PyTuple)) return this.rep(b, toNum(a));

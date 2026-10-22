@@ -172,6 +172,7 @@
   function criterioCumplido(textoNorm, c) {
     return c.claves.some(alt => (Array.isArray(alt) ? alt : [alt]).every(tok => tok instanceof RegExp ? tok.test(textoNorm) : textoNorm.includes(U.norm(tok))));
   }
+  Tipos.criterioCumplido = criterioCumplido;
   Tipos.abierta = {
     render(host, q, ctx) {
       cabecera(host, q, ctx);
@@ -187,15 +188,9 @@
     },
     grade(q, ans) {
       ans = ans || { texto: '', manual: {} };
-      const t = U.norm(ans.texto || ''); const manual = ans.manual || {};
-      let cum = 0; const items = [];
-      q.criterios.forEach((c, i) => {
-        const auto = criterioCumplido(t, c);
-        const val = manual[i] !== undefined ? manual[i] : auto;
-        if (val) cum++;
-        items.push({ ok: val, html: (val ? '**Cubierto:** ' : '**No detectado:** ') + c.desc, toggle: i, auto, manual: manual[i] !== undefined });
-      });
-      const score = cum / q.criterios.length;
+      const J = Tipos.itemsCriterios(q.criterios, ans.texto, ans);
+      const items = J.items;
+      const score = J.cum / q.criterios.length;
       const umbral = q.umbral || 0.67;
       return { score, ok: score >= umbral - 1e-9, items, extra: { modelo: q.modelo, abierta: true } };
     },
@@ -298,11 +293,19 @@
     grade(q, ans) {
       const esp = Tipos.tabla.esperados(q); ans = ans || [];
       const nc = s => U.normCompacto(s).replace(/[,;→]|->/g, '');
-      const celdas = esp.map((alts, i) => alts.some(a => nc(a) === nc(ans[i] || '')));
+      const celdas = esp.map((alts, i) => alts.some(a => q.cx ? U.igualCx(a, ans[i] || '') : nc(a) === nc(ans[i] || '')));
       const n = celdas.filter(Boolean).length, tot = esp.length;
       const items = [];
       if (n === tot) items.push(ok('Todas las celdas son correctas.'));
-      else { items.push(mal('Celdas correctas: **' + n + ' de ' + tot + '**. Las celdas en rojo tienen un error; revisa esas filas.')); }
+      else {
+        items.push(mal('Celdas correctas: **' + n + ' de ' + tot + '**. Las celdas en rojo tienen un error; revisa esas filas.'));
+        if (q.cx) {   // ayuda específica: la celda era amortizada y no se escribió (o al revés)
+          let amortFalta = 0, amortSobra = 0;
+          esp.forEach((alts, i) => { if (celdas[i]) return; const pe = U.parseCx(alts[0]), pa = U.parseCx(ans[i] || ''); if (pe.base === pa.base && pe.amort && !pa.amort) amortFalta++; if (pe.base === pa.base && !pe.amort && pa.amort) amortSobra++; });
+          if (amortFalta) items.push(info('En ' + amortFalta + ' celda(s) la complejidad es correcta pero **debía decir «amortizado»** (el parcial exige escribirlo explícitamente).'));
+          if (amortSobra) items.push(info('En ' + amortSobra + ' celda(s) escribiste «amortizado» pero el costo en el peor caso es **estricto**.'));
+        }
+      }
       return { score: n / tot, ok: n === tot, items, celdas };
     },
     solve(q) { return Tipos.tabla.esperados(q).map(a => a[0]); },

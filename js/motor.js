@@ -7,7 +7,7 @@
   const ETAPAS = ['A', 'B', 'C'];
   const RANGO = { A: [1, 3], B: [2, 4], C: [3, 5] };
   const PISTA_F = [1, 0.85, 0.7, 0.5];
-  const CASO_TPLS = ['n7-caso-3', 'n7-primer-nodo', 'n7-rotacion-arbol'];
+  const CASO_TPLS = ['n7-caso-3', 'n7-primer-nodo', 'n7-rotacion-arbol', 'n7-taller-insercion'];
   const kEt = (n, e) => 'N' + n + e;
   const hoy = () => new Date().toISOString().slice(0, 10);
 
@@ -141,6 +141,8 @@
   M.marcarResuelto = (key, v) => { if (E.errores[key]) { E.errores[key].resuelto = v; guardar(); } };
   M.borrarError = key => { delete E.errores[key]; guardar(); };
   M.limpiarResueltos = () => { Object.keys(E.errores).forEach(k => { if (E.errores[k].resuelto) delete E.errores[k]; }); guardar(); };
+  /** confusión de caso (p. ej. elegir LR cuando era RL) detectada fuera de una corrección normal, como en el taller interactivo */
+  M.registrarConfusion = (dado, correcta) => { const k = dado + '>' + correcta; E.confusiones[k] = (E.confusiones[k] || 0) + 1; guardarDif(); };
   M.confusiones = () => Object.entries(E.confusiones).map(([k, n]) => { const [a, b] = k.split('>'); return { dado: a, correcta: b, n }; }).sort((x, y) => y.n - x.n);
 
   /* ============ selección adaptativa (práctica) ============ */
@@ -205,13 +207,14 @@
     const difR = { basica: [1, 2], media: [2, 4], dificil: [4, 5], mixta: [1, 5] }[cfg.dificultad] || [1, 5];
     let niveles = cfg.acumulativo ? M.nivelesDesbloqueados() : cfg.niveles;
     if (!niveles || !niveles.length) niveles = [1];
-    let pool = Banco.filtrar({ niveles, dif: difR });
+    let pool = Banco.filtrar({ niveles, dif: difR }).filter(t => !t.soloPractica);   // los talleres interactivos son solo de práctica
     pool.forEach(t => Banco.categoriaDe(t));
     if (!cfg.incluirVF) pool = pool.filter(t => t._tipo !== 'vf');
     if (!cfg.incluirBigO) pool = pool.filter(t => t._tipo !== 'bigo');
     if (!cfg.incluirArboles) pool = pool.filter(t => t.n !== 6 && t.n !== 7);
     if (!cfg.incluirIntegradoras) pool = pool.filter(t => t.n !== 8 && t._tipo !== 'mixta');
-    if (!pool.length) pool = Banco.filtrar({ niveles });
+    if (!pool.length) pool = Banco.filtrar({ niveles }).filter(t => !t.soloPractica);
+    if (!pool.length) pool = Banco.filtrar({}).filter(t => !t.soloPractica);
     pool.forEach(t => Banco.categoriaDe(t));
     const porCat = { teoria: [], analisis: [], implementacion: [] }; pool.forEach(t => porCat[t._cat].push(t));
     const pesos = {}; Object.keys(porCat).forEach(c => { if (porCat[c].length) pesos[c] = cfg.dist && cfg.dist[c] !== undefined ? cfg.dist[c] : 1; });
@@ -232,6 +235,23 @@
     }
     items.sort((a, b) => (a.dif + rng.next() * 1.4) - (b.dif + rng.next() * 1.4));
     return items.map(({ tplId, seed, opts }) => ({ tplId, seed, opts }));
+  };
+  /** Parcial simulado: una pregunta de cada tipo del parcial del profesor (V/F con justificación, tabla de complejidades,
+      complejidad con variable/caso/regla, algoritmo en 4 literales, programación con casos borde), 1,0 punto cada una. */
+  M.PARCIAL_SLOTS = ['vf', 'tabla', 'cplx', 'alg', 'prog'];
+  M.PARCIAL_NIVELES = [1, 3, 4, 5, 6, 7];
+  M.generarParcial = function (cfg, evitar) {
+    evitar = evitar || [];
+    const niveles = cfg && cfg.niveles && cfg.niveles.length ? cfg.niveles : M.PARCIAL_NIVELES;
+    const rng = new U.RNG(U.newSeed()); const usadoNivel = {}; const items = [];
+    M.PARCIAL_SLOTS.forEach(slot => {
+      let pool = Banco.filtrar({ niveles }).filter(t => t.parcial && t.slot === slot);
+      if (!pool.length) pool = Banco.filtrar({}).filter(t => t.parcial && t.slot === slot);
+      const t = rng.weighted(pool, tp => 1 / (1 + 3 * (usadoNivel[tp.n] || 0) + (evitar.includes(tp.id) ? 4 : 0)));
+      usadoNivel[t.n] = (usadoNivel[t.n] || 0) + 1;
+      items.push({ tplId: t.id, seed: U.newSeed(), opts: null });
+    });
+    return items;
   };
   M.examenActivo = () => E.examenActivo;
   M.setExamenActivo = ex => { E.examenActivo = ex; guardarDif(); };
@@ -266,6 +286,7 @@
     if (deb.length) out.push({ tipo: 'aviso', icono: '🎯', titulo: 'Conceptos a reforzar', texto: deb.map(d => Tm.conceptos[d.id].nombre + (d.mastery !== null ? ' (' + Math.round(d.mastery * 100) + ' %)' : '')).join(' · '), ruta: '#/repaso', boton: 'Repaso inteligente' });
     const pend = Object.values(E.errores).filter(e => !e.resuelto).length;
     if (pend) out.push({ tipo: '', icono: '📝', titulo: pend + ' error' + (pend > 1 ? 'es' : '') + ' pendiente' + (pend > 1 ? 's' : ''), texto: 'Revísalos y practica ejercicios similares.', ruta: '#/errores', boton: 'Ir a Mis errores' });
+    if (!E.examenes.some(x => x.cfg && x.cfg.parcial)) out.push({ tipo: '', icono: '📝', titulo: 'Parcial simulado', texto: '5 preguntas de 1,0 como el parcial del profe (justificar, tablas de complejidad, algoritmo y programación con casos borde), 120 minutos y puntaje por literal.', ruta: '#/examen/config/parcial', boton: 'Hacer el parcial' });
     let cont = null;
     for (const l of Tm.niveles) { if (!M.nivelDesbloqueado(l.id)) break; const e = M.etapaActual(l.id); if (!M.etapaCompleta(l.id, e)) { cont = { n: l.id, e }; break; } }
     if (cont) out.push({ tipo: '', icono: '▶', titulo: 'Continuar: Nivel ' + cont.n + ' · Etapa ' + cont.e, texto: Tm.niveles[cont.n - 1].nombre + ' — ' + Tm.etapas[cont.e].nombre + '.', ruta: '#/practica/' + cont.n + '/' + cont.e, boton: 'Continuar' });

@@ -16,6 +16,7 @@
         h('a', { class: 'btn peq', href: '#/examen/curso' }, 'Continuar'), h('button', { class: 'btn sec peq', onclick: () => Vc.confirmar('Descartar examen', 'Se perderá el examen en curso y sus respuestas.', 'Descartar', () => { M.limpiarExamenActivo(); location.reload(); }) }, 'Descartar')));
     }
     const des = M.nivelesDesbloqueados();
+    host.appendChild(h('a', { class: 'modo parcial-destacado', href: '#/examen/config/parcial', style: { display: 'block', marginBottom: '16px' } }, h('h3', null, h('span', { class: 'ic', text: '📝' }), 'Parcial simulado (modelo del profe)'), h('p', { text: '5 preguntas de 1,0 punto como el parcial del curso: verdadero/falso con justificación, tabla de complejidades, complejidad con variable, caso y regla, algoritmo en cuatro literales y programación con casos borde. 120 minutos, sin pistas y con puntaje parcial por literal.' })));
     host.appendChild(h('div', { class: 'grid g3' },
       h('a', { class: 'modo', href: '#/examen/config/rapido' }, h('h3', null, h('span', { class: 'ic', text: '⚡' }), 'Examen rápido'), h('p', { text: '10 preguntas variadas de los niveles desbloqueados, sin tiempo. Ideal para medirte hoy.' })),
       h('a', { class: 'modo', href: '#/examen/config/simulacro' }, h('h3', null, h('span', { class: 'ic', text: '🎛' }), 'Simulacro configurable'), h('p', { text: 'Elige temas, cantidad, dificultad, duración y la proporción entre teoría, análisis e implementación.' })),
@@ -26,14 +27,50 @@
     else {
       const c = h('div', { class: 'card' });
       ex.slice(0, 12).forEach(x => c.appendChild(h('a', { class: 'fila sep', style: { padding: '10px 0', borderBottom: '1px dashed var(--borde)', textDecoration: 'none', color: 'inherit' }, href: '#/examen/resultado/' + x.id },
-        h('div', null, h('strong', { text: U.fmtFecha(x.t) }), h('div', { class: 'peq tenue', text: x.n + ' preguntas · ' + (x.cfg && x.cfg.acumulativo ? 'acumulativo' : 'niveles ' + (x.cfg ? x.cfg.niveles.join(', ') : '')) + (x.cfg && x.cfg.tiempo ? ' · con tiempo' : ''), })),
+        h('div', null, h('strong', { text: U.fmtFecha(x.t) }), h('div', { class: 'peq tenue', text: x.n + ' preguntas · ' + (x.cfg && x.cfg.parcial ? 'parcial simulado' : (x.cfg && x.cfg.acumulativo ? 'acumulativo' : 'niveles ' + (x.cfg ? x.cfg.niveles.join(', ') : ''))) + (x.cfg && x.cfg.tiempo ? ' · con tiempo' : ''), })),
         h('div', { class: 'fila' }, h('span', { class: 'chip', text: x.aciertos + '/' + x.n + ' correctas' }), h('strong', { text: fmtNota(x.nota5) + ' / 5.0' })))));
       host.appendChild(c);
     }
   };
 
   /* ===================== configuración ===================== */
+  /** configuración del parcial simulado: temas, tiempo (120 min como el parcial real) y opciones */
+  function configParcial(host) {
+    const NIV = [[1, 'Recursión'], [3, 'Paradigmas algorítmicos'], [4, 'Árboles binarios'], [5, 'Recorridos'], [6, 'BST'], [7, 'AVL']];
+    host.appendChild(h('div', { class: 'fila', style: { marginBottom: '10px' } }, h('a', { class: 'btn fantasma peq', href: '#/examen' }, '← Modo examen')));
+    host.appendChild(h('h1', { text: 'Parcial simulado' }));
+    host.appendChild(h('p', { class: 'suave', html: md('Reproduce el **modelo de parcial del profesor**: **5 preguntas de 1,0 punto**, con literales de puntaje parcial. Es individual, sin pistas ni teoría, y **toda respuesta debe estar justificada** (la justificación vale más que la marca; la complejidad sin argumento no recibe puntaje completo). La corrección y la nota por literal aparecen al entregar.') }));
+    const card = h('div', { class: 'card' });
+    card.appendChild(h('div', { class: 'cfg-sec' }, h('h3', { text: 'Las 5 preguntas' }), h('ol', { class: 'peq suave' },
+      h('li', { text: 'Verdadero o falso con justificación en una frase (0,2 cada una).' }),
+      h('li', { text: 'Tabla de complejidades en el peor caso (con «amortizado» cuando corresponda) y justificación de las filas menos evidentes.' }),
+      h('li', { text: 'Complejidad de tres funciones: variable, caso, regla (suma, producto, costo oculto…) y justificación.' }),
+      h('li', { text: 'Algoritmo en cuatro literales: trazado, resultado, implementación con casos borde (el O(n²) vale la mitad) y argumento.' }),
+      h('li', { text: 'Programación con casos borde y reglas del enunciado (p. ej., «no use listas auxiliares»), estado resultante y complejidad.' }))));
+    const sel = {}; const chk = h('div', { class: 'chk-niveles' });
+    NIV.forEach(([n, t]) => { const inp = h('input', { type: 'checkbox' }); inp.checked = true; sel[n] = inp; chk.appendChild(h('label', { class: 'chk-niv' }, inp, h('span', { text: t }))); });
+    card.appendChild(h('div', { class: 'cfg-sec' }, h('h3', { text: 'Temas que pueden salir' }), chk, h('div', { class: 'peq tenue', text: 'Por defecto: todo lo del próximo parcial (recursión, paradigmas, árboles, recorridos, BST y AVL). Si desmarcas temas, las 5 preguntas se eligen solo de los marcados cuando hay material.' })));
+    const cT = h('input', { type: 'checkbox' }); cT.checked = true; const min = h('input', { type: 'number', class: 'num', min: 10, max: 240, value: 120, 'aria-label': 'Minutos' });
+    const cRev = h('input', { type: 'checkbox' }); cRev.checked = true; const cCons = h('input', { type: 'checkbox' }); cCons.checked = false;
+    card.appendChild(h('div', { class: 'cfg-sec' }, h('h3', { text: 'Tiempo y condiciones' }),
+      h('label', { class: 'check' }, cT, h('span', null, h('strong', { text: 'Con tiempo (el parcial real dura 120 minutos)' }), h('div', { class: 'peq suave', text: 'Cuenta regresiva; al llegar a 0 se entrega solo.' }))),
+      h('div', { class: 'fila', style: { marginLeft: '28px' } }, h('label', { class: 'fila' }, 'Minutos:', min)),
+      h('label', { class: 'check' }, cRev, h('span', { text: 'Permitir avanzar, retroceder y revisar antes de entregar' })),
+      h('label', { class: 'check' }, cCons, h('span', null, h('strong', { text: 'Consola de Python en las preguntas de código' }), h('div', { class: 'peq suave', text: 'En el parcial real no hay computador: déjala desactivada para practicar «a mano».' })))));
+    const msg = h('div', { class: 'peq', style: { color: 'var(--mal)', minHeight: '1.3em' } });
+    card.appendChild(msg);
+    card.appendChild(h('div', { class: 'acciones' }, h('button', { class: 'btn grande', onclick: () => {
+      const niveles = NIV.map(([n]) => n).filter(n => sel[n].checked); if (!niveles.length) { msg.textContent = 'Elige al menos un tema.'; return; }
+      const cfg = { parcial: true, niveles, n: 5, dificultad: 'mixta', tiempo: cT.checked, minutos: U.clamp(parseInt(min.value) || 120, 10, 240), revisar: cRev.checked, consola: cCons.checked, acumulativo: false, dist: { teoria: 20, analisis: 40, implementacion: 40 } };
+      const items = M.generarParcial(cfg, []);
+      const ex = { id: U.uid(), cfg, items, resp: items.map(() => null), marcas: items.map(() => false), resp_ok: items.map(() => false), idx: 0, maxIdx: 0, inicio: Date.now(), fin: cfg.tiempo ? Date.now() + cfg.minutos * 60000 : null };
+      M.setExamenActivo(ex); location.hash = '#/examen/curso';
+    } }, 'Comenzar parcial ▶'), h('a', { class: 'btn fantasma', href: '#/examen' }, 'Cancelar')));
+    host.appendChild(card);
+  }
+
   V.examenConfig = function (host, args) {
+    if ((args[0] || '') === 'parcial') return configParcial(host);
     const preset = args[0] || 'simulacro'; const cfg = M.cfgExamenDefault(); let minManual = false;
     const des = M.nivelesDesbloqueados();
     let titulo = 'Simulacro configurable';
@@ -148,7 +185,7 @@
     function pintar() {
       U.vaciar(zona); const q = qs[ex.idx];
       const card = h('section', { class: 'card' });
-      card.appendChild(h('div', { class: 'fila sep', style: { marginBottom: '8px' } }, h('strong', { text: 'Pregunta ' + (ex.idx + 1) + ' de ' + N }), h('span', { class: 'chip', text: 'Valor: ' + M.pesoPregunta(q).toFixed(1) + ' pts' })));
+      card.appendChild(h('div', { class: 'fila sep', style: { marginBottom: '8px' } }, h('strong', { text: 'Pregunta ' + (ex.idx + 1) + ' de ' + N }), h('span', { class: 'chip', text: 'Valor: ' + (cfg.parcial ? '1,0' : M.pesoPregunta(q).toFixed(1)) + ' pts' })));
       ctl = Vc.montarPregunta(card, q, ctxEx);
       if (ex.resp[ex.idx] != null) ctl.setAnswer(ex.resp[ex.idx]);
       ctl.onChange(() => { clearTimeout(guardando); guardando = setTimeout(() => { guardarActual(); pintarNav(); }, 400); });
@@ -204,7 +241,7 @@
   };
 
   function construirEntrada(ex, qs, resultados) {
-    const pesos = qs.map(q => M.pesoPregunta(q)); const tot = U.sum(pesos);
+    const pesos = qs.map(q => ex.cfg && ex.cfg.parcial ? 1 : M.pesoPregunta(q)); const tot = U.sum(pesos);   // parcial simulado: 1,0 por pregunta
     const puntaje = U.sum(resultados.map((r, i) => r.score * pesos[i])) / tot * 100;
     const porNivel = {}, porConcepto = {}, porCat = {};
     qs.forEach((q, i) => {
@@ -232,6 +269,22 @@
     const nota = e.nota5; const msg = nota >= 4.5 ? '¡Excelente dominio!' : nota >= 3.5 ? 'Muy bien: afina los puntos débiles.' : nota >= 3 ? 'Aprobado justo: hay conceptos por reforzar.' : 'Hay que reforzar varios temas antes del examen real.';
     const tarj = h('div', { class: 'card res-grande' }, h('div', { class: 'tenue', text: 'Resultado · ' + U.fmtFecha(e.t) }), h('div', { class: 'nota', id: 'nota-g', text: fmtNota(nota) + ' / 5.0' }), h('div', { id: 'nota-p', class: 'suave', text: 'Puntaje ' + Math.round(e.puntaje) + ' % · ' + e.aciertos + ' de ' + e.n + ' preguntas totalmente correctas · tiempo ' + U.fmtTiempo(e.tiempoMs) }), h('p', { style: { marginTop: '8px' }, text: msg }));
     host.appendChild(tarj);
+
+    // parcial simulado: puntos por pregunta y por literal (como en la hoja de calificación del profe)
+    if (e.cfg && e.cfg.parcial) {
+      const cP = h('div', { class: 'card espacio' }, h('h2', { text: 'Tu parcial literal por literal' }), h('p', { class: 'peq suave', text: 'Cada pregunta vale 1,0. Los literales muestran los puntos obtenidos sobre los posibles; la justificación vale más que la marca, y una solución correcta pero O(n²) cuando se pedía O(n) recibe la mitad.' }));
+      const NOM = { vf: 'Verdadero/falso con justificación', tabla: 'Tabla de complejidades', cplx: 'Complejidad: variable, caso y regla', alg: 'Algoritmo en cuatro literales', prog: 'Programación con casos borde' };
+      qs.forEach((q, i) => {
+        const tp = Banco.porId[q.tplId]; const sc = e.scores[i];
+        const fila = h('div', { class: 'parc-p' }, h('div', { class: 'fila sep' }, h('strong', { text: (i + 1) + '. ' + (NOM[tp && tp.slot] || Tipos.formato(q)) }), h('span', { class: 'pt ' + (e.oks[i] ? 'ok' : sc > 0 ? 'med' : 'mal'), text: Tipos.pts(sc) + ' / 1,00' })), h('div', { class: 'peq tenue', text: q.tema || '' }));
+        if (e.resp && q.tipo === 'mixta') {
+          let r = null; try { r = Tipos.mod(q).grade(q, e.resp[i], { modo: 'revision' }); } catch (x) { r = null; }
+          if (r && r.sub) fila.appendChild(h('ul', { class: 'parc-lit' }, q.partes.map((p, k) => { const pp = Tipos.ptsParte(q, p); const s = r.sub[k]; const ti = (p.titulo || (p.q.tipo === 'vfj' ? 'Afirmación ' + (k + 1) : 'Parte')); return h('li', null, h('span', { text: String.fromCharCode(97 + k) + ') ' + ti }), h('span', { class: 'pts-lit ' + (s.ok ? 'ok' : s.score > 0 ? 'med' : 'mal'), text: Tipos.pts(pp * s.score) + ' / ' + Tipos.pts(pp) })); })));
+        }
+        cP.appendChild(fila);
+      });
+      host.appendChild(cP);
+    }
 
     // por nivel y tipo
     const g = h('div', { class: 'grid g2 espacio' });
@@ -270,10 +323,10 @@
         const pintarFb = () => {
           U.vaciar(fbHost); let res;
           try { res = mod.grade(q, ans, { modo: 'revision' }); } catch (x) { res = { score: 0, ok: false, items: [{ ok: false, html: 'Error: ' + x.message }] }; }
-          const fb = Vc.feedbackNodo(res, ans || {}, q.tipo === 'abierta' ? () => { const r2 = mod.grade(q, ans, { modo: 'revision' }); e.resp[i] = ans; actualizarPregunta(r2); pintarFb(); } : null);
+          const reg = Tipos.manualizable(q) ? () => { const r2 = mod.grade(q, ans, { modo: 'revision' }); e.resp[i] = ans; actualizarPregunta(r2); pintarFb(); } : null;
+          const fb = Vc.feedbackNodo(res, ans || {}, reg);
           fbHost.appendChild(fb); Tipos.hidratar(fb);
-          if (q.tipo === 'abierta' && res.extra) fbHost.appendChild(h('div', { class: 'panel' }, h('h4', { text: 'Respuesta modelo' }), h('div', { html: md(res.extra.modelo) })));
-        };
+          if (res.extra && res.extra.modelo) fbHost.appendChild(h('div', { class: 'panel' }, h('h4', { text: 'Respuesta modelo' }), h('div', { html: md(res.extra.modelo) })));        };
         const actualizarPregunta = (r2) => {
           e.scores[i] = +r2.score.toFixed(3); e.oks[i] = !!r2.ok;
           pt.className = 'pt ' + (r2.ok ? 'ok' : r2.score > 0 ? 'med' : 'mal'); pt.textContent = Math.round(r2.score * 100) + ' %';
@@ -293,7 +346,7 @@
     });
     host.appendChild(lista);
     host.appendChild(h('div', { class: 'acciones' },
-      h('button', { class: 'btn', onclick: () => { const cfg = JSON.parse(JSON.stringify(e.cfg)); const items = M.generarExamen(cfg, e.items.map(x => x.tplId)); const ex = { id: U.uid(), cfg, items, resp: items.map(() => null), marcas: items.map(() => false), resp_ok: items.map(() => false), idx: 0, maxIdx: 0, inicio: Date.now(), fin: cfg.tiempo ? Date.now() + cfg.minutos * 60000 : null }; M.setExamenActivo(ex); location.hash = '#/examen/curso'; } }, '🔁 Repetir con preguntas nuevas'),
+      h('button', { class: 'btn', onclick: () => { const cfg = JSON.parse(JSON.stringify(e.cfg)); const items = cfg.parcial ? M.generarParcial(cfg, e.items.map(x => x.tplId)) : M.generarExamen(cfg, e.items.map(x => x.tplId)); const ex = { id: U.uid(), cfg, items, resp: items.map(() => null), marcas: items.map(() => false), resp_ok: items.map(() => false), idx: 0, maxIdx: 0, inicio: Date.now(), fin: cfg.tiempo ? Date.now() + cfg.minutos * 60000 : null }; M.setExamenActivo(ex); location.hash = '#/examen/curso'; } }, '🔁 Repetir con preguntas nuevas'),
       h('a', { class: 'btn sec', href: '#/errores' }, '📝 Ver Mis errores'), h('a', { class: 'btn fantasma', href: '#/panel' }, 'Panel')));
   };
 })(typeof window !== 'undefined' ? window : globalThis);

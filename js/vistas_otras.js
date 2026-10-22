@@ -63,11 +63,67 @@
   V.lab = function (host, args) {
     const tab = args[0] || 'arboles';
     host.appendChild(h('h1', { text: 'Laboratorio' }));
-    host.appendChild(h('div', { class: 'tabs' }, [['arboles', '🌳 Árboles BST/AVL'], ['recursion', '↻ Pila de recursión'], ['consola', '⌨ Consola Python']].map(([k, t]) => h('a', { class: 'tab' + (k === tab ? ' act' : ''), href: '#/lab/' + k, text: t }))));
+    host.appendChild(h('div', { class: 'tabs' }, [['arboles', '🌳 Árboles BST/AVL'], ['taller', '✋ Taller interactivo'], ['recursion', '↻ Pila de recursión'], ['consola', '⌨ Consola Python']].map(([k, t]) => h('a', { class: 'tab' + (k === tab ? ' act' : ''), href: '#/lab/' + k, text: t }))));
     if (tab === 'recursion') return labRecursion(host);
     if (tab === 'consola') return labConsola(host);
+    if (tab === 'taller') return labTaller(host);
     return labArboles(host);
   };
+
+  /* ===================== Laboratorio: taller interactivo (mover nodos) ===================== */
+  function labTaller(host) {
+    host.appendChild(h('p', { class: 'suave', html: U.mdInline('Resuelve **tú** la operación moviendo los nodos: colocas el nodo nuevo, detectas el nodo desbalanceado, clasificas el desbalance y aplicas cada rotación arrastrando un hijo sobre su padre. En modo estricto, lo que esté mal **no se acepta** y el árbol no cambia.') }));
+    const PRESETS = [
+      ['Caso LL', 'avl', '30(20,)', '10'], ['Caso RR', 'avl', '10(,20)', '30'], ['Caso LR', 'avl', '30(10,)', '20'], ['Caso RL', 'avl', '10(,30)', '20'],
+      ['Secuencia de clase', 'avl', '', '10, 20, 30, 40, 50, 25'], ['Eliminar con rotación', 'avl', '20(10,30(,40))', '-10'],
+      ['BST: insertar', 'bst', '50(30(20,40),70(60,80))', '45, 65, 10'], ['BST: eliminar', 'bst', '50(30(20,40),70(60,80))', '-30, -50', 'pred']
+    ];
+    const selTipo = h('select', { 'aria-label': 'Tipo de árbol' }, h('option', { value: 'avl', text: 'AVL (con rotaciones)' }), h('option', { value: 'bst', text: 'BST (sin balanceo)' }));
+    const selConv = h('select', { 'aria-label': 'Reemplazo al eliminar un nodo con dos hijos' }, h('option', { value: 'suc', text: 'Eliminar con dos hijos: sucesor inorden' }), h('option', { value: 'pred', text: 'Eliminar con dos hijos: predecesor inorden' }));
+    const inArbol = h('input', { type: 'text', class: 'entrada-nota', placeholder: 'Árbol inicial, p. ej. 30(20,) — vacío = árbol vacío', spellcheck: 'false', autocomplete: 'off', 'aria-label': 'Árbol inicial' });
+    const inOps = h('input', { type: 'text', class: 'entrada-nota', placeholder: 'Operaciones: 25, 10, -30 (el signo − elimina)', spellcheck: 'false', autocomplete: 'off', 'aria-label': 'Operaciones' });
+    const zona = h('div', { style: { marginTop: '14px' } });
+    const presets = h('div', { class: 'fila' }, PRESETS.map(p => h('button', { type: 'button', class: 'btn sec peq', onclick: () => { selTipo.value = p[1]; selConv.value = p[4] || (p[1] === 'bst' ? 'pred' : 'suc'); inArbol.value = p[2]; inOps.value = p[3]; comenzar(); } }, p[0])));
+    function leerOps(txt) {
+      const ops = [];
+      for (const raw of txt.split(/[;,]+/).map(s => s.trim()).filter(Boolean)) {
+        let m;
+        if ((m = /^(?:\+|ins(?:ertar)?\s*)?(\d+)$/i.exec(raw))) ops.push({ t: 'ins', v: Number(m[1]) });
+        else if ((m = /^(?:-|−|del(?:ete)?\s*|eliminar\s*|borrar\s*)(\d+)$/i.exec(raw))) ops.push({ t: 'del', v: Number(m[1]) });
+        else if (/^reb(alancear)?$/i.test(raw)) ops.push({ t: 'reb' });
+        else throw new Error('No entiendo «' + raw + '». Usa números para insertar (25), con signo − para eliminar (-30) o «reb».');
+      }
+      return ops;
+    }
+    function comenzar() {
+      U.vaciar(zona);
+      try {
+        const tipo = selTipo.value, conv = selConv.value; let t = Arb.parse(inArbol.value);
+        if (t && !Arb.esBST(t)) throw new Error('El árbol inicial no cumple la propiedad de BST.');
+        if (t && Arb.tam(t) > 14) throw new Error('Usa un árbol inicial de hasta 14 nodos.');
+        let ops = leerOps(inOps.value); const avisos = [];
+        if (!ops.length) throw new Error('Escribe al menos una operación.');
+        if (ops.length > 12) throw new Error('Usa hasta 12 operaciones por ejercicio.');
+        if (tipo === 'avl' && t && Arb.desbalanceados(t).length) { ops = [{ t: 'reb' }].concat(ops); avisos.push('El árbol inicial no es AVL: primero hay que rebalancearlo (op. «reb»).'); }
+        let sim = t; // validación de las operaciones
+        for (const o of ops) {
+          if (o.t === 'ins') { if (Arb.buscarNodo(sim, o.v)) throw new Error('El valor ' + o.v + ' ya está en el árbol (no se duplican).'); sim = tipo === 'avl' ? Arb.insAVL(sim, o.v).arbol : Arb.insBST(sim, o.v); }
+          else if (o.t === 'del') { if (!Arb.buscarNodo(sim, o.v)) throw new Error('No puedes eliminar ' + o.v + ': no está en el árbol en ese momento.'); sim = tipo === 'avl' ? Arb.delAVL(sim, o.v, conv).arbol : Arb.delBST(sim, o.v, conv); if (!sim) throw new Error('El árbol quedaría vacío; usa un ejemplo con más nodos.'); }
+          else sim = Arb.rebalancear(sim).arbol;
+        }
+        avisos.forEach(a => zona.appendChild(h('div', { class: 'panel', text: a })));
+        zona.appendChild(h('div', { class: 'card flat', style: { marginTop: '8px' } }, h('div', { class: 'taller-lab' })));
+        const w = ET.Taller.montar(U.$('.taller-lab', zona), { tipo, conv, arbol: t, ops, estricto: true });
+        w.onCompletar(r => { zona.appendChild(h('div', { class: 'panel', html: U.mdInline('🎉 **Terminaste.** Intentos fallidos: ' + r.fallos + ' · pistas: ' + r.pistas + '. Cambia las operaciones o elige otro ejemplo para seguir practicando.') })); });
+      } catch (e) { zona.appendChild(h('div', { class: 'panel', style: { borderColor: 'var(--mal)' }, text: '⚠ ' + e.message })); }
+    }
+    host.appendChild(h('div', { class: 'card flat' },
+      h('div', { class: 'peq suave', style: { marginBottom: '6px' }, text: 'Ejemplos rápidos' }), presets,
+      h('div', { class: 'fila', style: { marginTop: '12px' } }, selTipo, selConv),
+      h('div', { style: { marginTop: '8px' } }, inArbol), h('div', { style: { marginTop: '8px' } }, inOps),
+      h('div', { class: 'fila', style: { marginTop: '10px' } }, h('button', { type: 'button', class: 'btn', onclick: comenzar }, '✋ Comenzar'))));
+    host.appendChild(zona);
+  }
 
   function labArboles(host) {
     let modo = 'avl', arbol = null, ocupado = false, vivo = 0, mostrarF = true, anim = null;
@@ -230,7 +286,7 @@
     const vel = h('input', { type: 'range', class: 'rango', min: 250, max: 1500, step: 50, value: c.animVel, 'aria-label': 'Duración de las animaciones' }); vel.addEventListener('input', () => M.setConfig('animVel', +vel.value));
     card.appendChild(h('div', { class: 'cfg-sec' }, h('h3', { text: 'Apariencia y animaciones' }), h('div', { class: 'fila' }, h('label', { class: 'fila' }, 'Tema:', tema)), h('div', { class: 'fila espacio' }, h('span', { text: 'Animaciones rápidas' }), vel, h('span', { text: 'lentas' }))));
     host.appendChild(card);
-    const datos = h('div', { class: 'card' }, h('h2', { text: 'Tus datos' }), h('p', { class: 'suave', text: 'El progreso se guarda en este navegador (localStorage)' + (U.Store.persistente ? '.' : ' — ¡ojo! el almacenamiento está bloqueado; el progreso se perderá al cerrar la pestaña.') + ' Puedes exportarlo para hacer copia de seguridad o pasarlo a otro dispositivo.' }));
+    const datos = h('div', { class: 'card espacio' }, h('h2', { text: 'Tus datos' }), h('p', { class: 'suave', text: 'El progreso se guarda en este navegador (localStorage)' + (U.Store.persistente ? '.' : ' — ¡ojo! el almacenamiento está bloqueado; el progreso se perderá al cerrar la pestaña.') + ' Puedes exportarlo para hacer copia de seguridad o pasarlo a otro dispositivo.' }));
     const file = h('input', { type: 'file', accept: 'application/json', class: 'oculto' });
     file.addEventListener('change', () => { const f = file.files[0]; if (!f) return; const r = new FileReader(); r.onload = () => { try { M.importar(r.result); Vc.toast('Progreso importado.'); location.hash = '#/panel'; setTimeout(() => location.reload(), 300); } catch (e) { Vc.toast('No se pudo importar: ' + e.message); } }; r.readAsText(f); });
     datos.appendChild(h('div', { class: 'acciones' }, h('button', { class: 'btn sec', onclick: () => U.descargar('progreso-entrenador-ed.json', M.exportar()) }, '⬇ Exportar progreso'), h('button', { class: 'btn sec', onclick: () => file.click() }, '⬆ Importar progreso'), file,

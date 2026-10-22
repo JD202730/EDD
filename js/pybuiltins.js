@@ -11,6 +11,7 @@
   proto.sortArr = function (arr, keyF, reverse) {
     const rev = reverse !== undefined && reverse !== null && this.truth(reverse);
     keyF = keyF === undefined || keyF === null ? null : keyF;
+    this.costo(arr.length * Math.ceil(Math.log2(Math.max(2, arr.length))));
     const dec = arr.map(x => ({ x, k: keyF ? this.call(keyF, [x]) : x }));
     dec.sort((p, q) => { const c = this.cmp(p.k, q.k, '<'); return rev ? -c : c; });
     return dec.map(d => d.x);
@@ -71,20 +72,21 @@
   /* ===================== métodos de tipos ===================== */
   const LIST = {
     append(s, [x]) { s.push(x); return null; },
-    extend(s, [x]) { for (const y of this.toList(x)) s.push(y); return null; },
-    insert(s, [i, x]) { i = toNum(i); if (i < 0) i = Math.max(0, i + s.length); if (i > s.length) i = s.length; s.splice(i, 0, x); return null; },
+    extend(s, [x]) { const l = this.toList(x); this.costo(l.length); for (const y of l) s.push(y); return null; },
+    insert(s, [i, x]) { i = toNum(i); if (i < 0) i = Math.max(0, i + s.length); if (i > s.length) i = s.length; this.costo(s.length - i); s.splice(i, 0, x); return null; },
     pop(s, a) {
       if (!s.length) throw this.mkExc('IndexError', 'pop from empty list');
       let k = a.length ? toNum(a[0]) : s.length - 1; if (k < 0) k += s.length;
       if (k < 0 || k >= s.length) throw this.mkExc('IndexError', 'pop index out of range');
+      this.costo(s.length - 1 - k);
       return s.splice(k, 1)[0];
     },
-    remove(s, [x]) { const i = s.findIndex(y => this.eq(x, y)); if (i < 0) throw this.mkExc('ValueError', 'list.remove(x): x not in list'); s.splice(i, 1); return null; },
-    index(s, [x]) { const i = s.findIndex(y => this.eq(x, y)); if (i < 0) throw this.mkExc('ValueError', this.repr(x) + ' is not in list'); return i; },
-    count(s, [x]) { return s.filter(y => this.eq(x, y)).length; },
+    remove(s, [x]) { const i = s.findIndex(y => this.eq(x, y)); if (i < 0) throw this.mkExc('ValueError', 'list.remove(x): x not in list'); this.costo(s.length); s.splice(i, 1); return null; },
+    index(s, [x]) { const i = s.findIndex(y => this.eq(x, y)); if (i < 0) throw this.mkExc('ValueError', this.repr(x) + ' is not in list'); this.costo(i + 1); return i; },
+    count(s, [x]) { this.costo(s.length); return s.filter(y => this.eq(x, y)).length; },
     sort(s, a, kw) { const r = this.sortArr(s, kw && kw.key, kw && kw.reverse); s.length = 0; for (const x of r) s.push(x); return null; },
-    reverse(s) { s.reverse(); return null; },
-    copy(s) { return s.slice(); },
+    reverse(s) { this.costo(s.length); s.reverse(); return null; },
+    copy(s) { this.costo(s.length); return s.slice(); },
     clear(s) { s.length = 0; return null; }
   };
   const STR = {
@@ -200,9 +202,9 @@
     });
     type('str', args => args.length ? it.str(args[0]) : '');
     type('bool', args => args.length ? it.truth(args[0]) : false);
-    type('list', args => args.length ? it.toList(args[0]) : []);
-    type('tuple', args => new PyTuple(args.length ? it.toList(args[0]) : []));
-    type('set', args => { const s = new PySet(); if (args.length) for (const x of it.iterOf(args[0])) s.m.set(it.hk(x), x); return s; });
+    type('list', args => { if (!args.length) return []; const l = it.toList(args[0]); it.costo(l.length); return l; });
+    type('tuple', args => { if (!args.length) return new PyTuple([]); const l = it.toList(args[0]); it.costo(l.length); return new PyTuple(l); });
+    type('set', args => { const s = new PySet(); if (args.length) for (const x of it.iterOf(args[0])) { it.costo(1); s.m.set(it.hk(x), x); } return s; });
     type('dict', (args, kw) => {
       const d = new PyDict();
       if (args.length) { const a = args[0]; if (a instanceof PyDict) for (const [k, kv] of a.m) d.m.set(k, [kv[0], kv[1]]); else for (const p of it.iterOf(a)) { const kv = it.toList(p); if (kv.length !== 2) throw it.mkExc('ValueError', 'dictionary update sequence element has wrong length'); d.m.set(it.hk(kv[0]), [kv[0], kv[1]]); } }
@@ -235,13 +237,14 @@
     def('abs', ([v]) => { if (!isNumLike(v)) throw it.mkExc('TypeError', "bad operand type for abs(): '" + it.tname(v) + "'"); const x = Math.abs(toNum(v)); return isFl(v) ? mkF(x) : x; });
     const mm = (name, sign) => (args, kw) => {
       const items = args.length === 1 ? it.toList(args[0]) : args; const key = kw && kw.key;
+      it.costo(items.length);
       if (!items.length) { if (kw && 'default' in kw) return kw.default; throw it.mkExc('ValueError', name + '() arg is an empty sequence'); }
       let best = items[0], bk = key ? it.call(key, [best]) : best;
       for (let i = 1; i < items.length; i++) { const k = key ? it.call(key, [items[i]]) : items[i]; const c = it.cmp(k, bk, sign < 0 ? '<' : '>'); if (sign < 0 ? c < 0 : c > 0) { best = items[i]; bk = k; } }
       return best;
     };
     def('min', mm('min', -1)); def('max', mm('max', 1));
-    def('sum', (args) => { let acc = args.length > 1 ? args[1] : 0; for (const x of it.iterOf(args[0])) acc = it.arith('+', acc, x); return acc; });
+    def('sum', (args) => { let acc = args.length > 1 ? args[1] : 0; for (const x of it.iterOf(args[0])) { it.costo(1); acc = it.arith('+', acc, x); } return acc; });
     def('sorted', (args, kw) => it.sortArr(it.toList(args[0]), kw && kw.key, kw && kw.reverse));
     def('reversed', ([x]) => it.toList(x).reverse());
     def('enumerate', (args, kw) => { const st = args.length > 1 ? toNum(args[1]) : (kw && kw.start !== undefined ? toNum(kw.start) : 0); return it.toList(args[0]).map((x, i) => new PyTuple([i + st, x])); });

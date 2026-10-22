@@ -19,9 +19,12 @@
       case 'clasificar': return [];
       case 'orden': return q.inicial.slice();
       case 'mixta': return q.partes.map(p => respuestaEnBlanco(p.q));
+      case 'taller': return { fin: false, fallos: 0, pistas: 0 };
+      case 'vfj': return { v: null, texto: '', manual: {} };
+      case 'cplx': return { texto: '', manual: {} };
     }
   }
-  const sig = q => JSON.stringify((q.opciones || []).map(o => o.t)) + (q.criterios ? 'c' : '') + (q.items ? JSON.stringify(q.items) : '') + (q.enunciado || '') + '|' + (q.codigoVista || '') + '|' + (q.afirmacion || '') + '|' + (q.arbol ? ET.Arb.nota(q.arbol) : '') + '|' + (q.starter || '') + '|' + (q.plantilla || '');
+  const sig = q => JSON.stringify((q.opciones || []).map(o => o.t)) + (q.criterios ? 'c' : '') + (q.items ? JSON.stringify(q.items) : '') + (q.enunciado || '') + '|' + (q.codigoVista || '') + '|' + (q.afirmacion || '') + '|' + (q.arbol ? ET.Arb.nota(q.arbol) : '') + '|' + (q.starter || '') + '|' + (q.plantilla || '') + (q.taller ? '|' + ET.Arb.nota(q.taller.arbol) + JSON.stringify(q.taller.ops) : '');
 
   async function pruebaBanco(nSemillas) {
     nSemillas = nSemillas || 12;
@@ -63,13 +66,19 @@
           if (!(g2.score > 0.999)) throw new Error('ciclo render→respuesta→corrección falla: score=' + g2.score + ' ' + JSON.stringify(a2).slice(0, 200));
           if (ctl.isEmpty()) throw new Error('isEmpty() true tras setAnswer');
           ctl.lock(true); ctl.lock(false);
+          // media nota: la solución correcta pero lenta (q.lento) debe puntuar ≈ 50 % (criterio del parcial)
+          const lentas = []; (function rec(qq) { if (qq.tipo === 'codigo' && qq.lento) lentas.push(qq); if (qq.tipo === 'mixta') qq.partes.forEach(p => rec(p.q)); })(q);
+          lentas.forEach(qq => { const gl = ET.Tipos.codigo.grade(qq, { codigo: qq.lento }, { modo: 'practica' }); if (!(gl.score > 0.45 && gl.score < 0.55)) throw new Error('la solución lenta debería valer ≈ 50 %, vale ' + gl.score + ' ' + JSON.stringify((gl.items || []).map(i => i.html).slice(0, 3))); });
           cats[ET.Tipos.categoria(q)] = (cats[ET.Tipos.categoria(q)] || 0) + 1;
           fmts[ET.Tipos.formato(q)] = (fmts[ET.Tipos.formato(q)] || 0) + 1;
           tipos[q.tipo] = (tipos[q.tipo] || 0) + 1;
           // exportación para CPython
           if (s <= 4) {
             const collect = qq => {
-              if (qq.tipo === 'codigo') exportar.push({ id: t.id, seed, tipo: 'codigo', prelude: qq.prelude || '', solucion: qq.solucion, modo: qq.modoEj || 'codigo', starter: qq.starter || null, tests: qq.tests });
+              if (qq.tipo === 'codigo') {
+                exportar.push({ id: t.id, seed, tipo: 'codigo', prelude: qq.prelude || '', solucion: qq.solucion, modo: qq.modoEj || 'codigo', starter: qq.starter || null, tests: qq.tests });
+                if (qq.lento) exportar.push({ id: t.id + '·lento', seed, tipo: 'codigo', prelude: qq.prelude || '', solucion: qq.lento, modo: 'codigo', starter: null, tests: qq.tests.filter(x => !x.ef) });
+              }
               else if (qq.tipo === 'salida' && qq.stdout) exportar.push({ id: t.id, seed, tipo: 'salida', codigo: qq.codigoVista, esperado: qq.esperado });
               else if (qq.tipo === 'mixta') qq.partes.forEach(p => collect(p.q));
             };
@@ -87,6 +96,33 @@
     return res;
   }
   window.pruebaBanco = pruebaBanco;
+
+  /* Complejidades medidas: para cada pregunta «cplx» con `medir`, la razón de pasos entre dos tamaños debe corresponder a la clase declarada */
+  const CRECE = { '1': () => 1, 'logn': x => Math.log2(x), 'n': x => x, 'nlogn': x => x * Math.log2(x), 'n2': x => x * x, 'n3': x => x * x * x, '2n': x => Math.pow(2, x) };
+  async function pruebaMedir(nSem) {
+    nSem = nSem || 12; const fallos = []; let n = 0; const vistos = {};
+    for (const t of ET.Banco.plantillas.filter(t => t.slot === 'cplx')) {
+      for (let s = 1; s <= nSem; s++) {
+        let q; try { q = ET.Banco.instanciar(t.id, 77 + s * 6271); } catch (e) { fallos.push({ id: t.id, msg: String(e) }); continue; }
+        q.partes.forEach(p => {
+          const m = p.q.medir; if (!m) return;
+          const clave = p.q.codigoVista + '|' + m.exprs.join(); if (vistos[clave]) return; vistos[clave] = 1; n++;
+          const f = CRECE[p.q.esperado.clase]; if (!f) { fallos.push({ id: t.id, msg: 'clase sin modelo de crecimiento: ' + p.q.esperado.clase }); return; }
+          const s1 = ET.Py.sesion((m.pre || '') + '\n' + p.q.codigoVista, { maxSteps: 3e7, maxMs: 30000 });
+          if (!s1.ok) { fallos.push({ id: t.id, msg: 'no carga: ' + ET.Py.textoError(s1.error) }); return; }
+          const r1 = s1.evaluar(m.exprs[0], { maxSteps: 3e7, cargaOculta: true }), r2 = s1.evaluar(m.exprs[1], { maxSteps: 3e7, cargaOculta: true });
+          if (!r1.ok || !r2.ok) { fallos.push({ id: t.id, msg: 'falla al evaluar ' + m.exprs.join(' / ') + ': ' + ET.Py.textoError((r1.ok ? r2 : r1).error) }); return; }
+          const razon = r2.pasos / r1.pasos, esp = f(m.ns[1]) / f(m.ns[0]);
+          const tol = m.tol || [0.65, 1.45];
+          if (razon < esp * tol[0] || razon > esp * tol[1]) fallos.push({ id: t.id, msg: 'razón de pasos ' + razon.toFixed(2) + ' vs esperada ' + esp.toFixed(2) + ' (' + p.q.esperado.clase + ') en ' + m.exprs.join(' / ') });
+        });
+      }
+    }
+    return { medidas: n, fallos };
+  }
+  window.pruebaMedir = pruebaMedir;
+  const bm = document.getElementById('btn-medir');
+  if (bm) bm.onclick = async () => { out.textContent = 'Midiendo…\n'; const r = await pruebaMedir(12); log('Complejidades verificadas: ' + r.medidas + ' | fallos: ' + r.fallos.length); r.fallos.slice(0, 20).forEach(f => log(' ✗ ' + f.id + ': ' + f.msg)); };
   document.getElementById('btn-todo').onclick = async () => {
     out.textContent = 'Ejecutando…\n';
     const r = await pruebaBanco(12);

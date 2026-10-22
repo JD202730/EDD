@@ -103,11 +103,16 @@
         return res;
       }
       const reglasMal = r.reglas.filter(x => !x.ok);
-      const base = r.total ? r.aprobadas / r.total : 1;
-      res.score = reglasMal.length ? Math.min(base, 0.5) * 0.9 : base;
-      res.ok = r.aprobadas === r.total && reglasMal.length === 0;
-      if (r.aprobadas === r.total) items.push(ok('Pasaste **' + r.aprobadas + ' de ' + r.total + '** pruebas.'));
-      else items.push(mal('Pasaste **' + r.aprobadas + ' de ' + r.total + '** pruebas.'));
+      // pruebas de eficiencia (ef): si todas las de corrección pasan pero la solución es lenta, vale la mitad (criterio del parcial)
+      const corr = r.pruebas.filter(p => !p.ef), efi = r.pruebas.filter(p => p.ef);
+      const corrOk = corr.filter(p => p.ok).length, efiOk = efi.every(p => p.ok);
+      const base = corr.length ? corrOk / corr.length : 1;
+      const lenta = efi.length > 0 && !efiOk;
+      res.score = (reglasMal.length ? Math.min(base, 0.5) * 0.9 : base) * (lenta ? 0.5 : 1);
+      res.ok = corrOk === corr.length && reglasMal.length === 0 && !lenta;
+      if (corrOk === corr.length) items.push(ok('Pasaste **' + corrOk + ' de ' + corr.length + '** pruebas de corrección' + (efi.length ? (efiOk ? ' y la de eficiencia.' : '.') : '.')));
+      else items.push(mal('Pasaste **' + corrOk + ' de ' + corr.length + '** pruebas de corrección.'));
+      if (lenta) items.push(mal('**Eficiencia:** ' + (corrOk === corr.length ? 'tu solución es correcta pero **demasiado lenta** (por ejemplo, un doble ciclo O(n²) cuando se pedía O(n)): en el parcial vale **la mitad**.' : 'además, no cumple la eficiencia pedida (el puntaje se reduce a la mitad).')));
       reglasMal.forEach(x => items.push(mal('**Requisito no cumplido:** ' + x.msg)));
       const fallos = r.pruebas.filter(p => !p.ok);
       fallos.slice(0, ctx.modo === 'examen' ? 4 : 3).forEach(p => {
@@ -357,12 +362,16 @@
   };
 
   /* =============================== mixta (varias partes) =============================== */
+  /** puntos de una parte cuando la pregunta tiene valor (p. ej. 1,0 como en el parcial) */
+  const ptsParte = (q, p) => q.valor ? (p.peso || 1) / q.partes.reduce((s, x) => s + (x.peso || 1), 0) * q.valor : null;
+  Tipos.ptsParte = ptsParte;
   Tipos.mixta = {
     render(host, q, ctx) {
       Tipos.cabecera(host, q, ctx);
       const ctls = [];
       q.partes.forEach((p, i) => {
-        const caja = h('section', { class: 'parte' }, h('h4', { class: 'parte-t', text: String.fromCharCode(97 + i) + ') ' + (p.titulo || '') + (q.partes.length > 1 && p.peso ? '' : '') }));
+        const pp = ptsParte(q, p);
+        const caja = h('section', { class: 'parte' }, h('h4', { class: 'parte-t' }, String.fromCharCode(97 + i) + ') ' + (p.titulo || ''), pp !== null ? h('span', { class: 'pts-parte', text: ' (' + Tipos.pts(pp) + ' pts)' }) : null));
         const sub = Tipos.mod(p.q); const body = h('div', { class: 'parte-cuerpo' }); caja.appendChild(body); host.appendChild(caja);
         ctls.push(sub.render(body, p.q, ctx));
       });
@@ -377,8 +386,13 @@
       q.partes.forEach((p, i) => {
         const r = Tipos.mod(p.q).grade(p.q, ans[i], ctx); sub.push(r);
         const w = p.peso || 1; tot += w; suma += w * r.score;
-        items.push(info('**Parte ' + String.fromCharCode(97 + i) + ')** — ' + Math.round(r.score * 100) + ' %'));
-        r.items.forEach(it => items.push(it));
+        const pp = ptsParte(q, p);
+        items.push(info('**Parte ' + String.fromCharCode(97 + i) + ')** — ' + Math.round(r.score * 100) + ' %' + (pp !== null ? ' · **' + Tipos.pts(pp * r.score) + ' de ' + Tipos.pts(pp) + ' pts**' : '')));
+        r.items.forEach(it => {   // los interruptores de criterios de cada parte escriben en la respuesta de esa parte
+          if (it.toggle === undefined) { items.push(it); return; }
+          const t = it.toggle; const sa = ans[i];
+          items.push(Object.assign({}, it, { toggle: i + ':' + t, alter: v => { if (sa) { sa.manual = sa.manual || {}; sa.manual[t] = v; } } }));
+        });
       });
       const score = suma / tot;
       return { score, ok: score > 0.999, items, sub, confusion: (sub.find(s => s.confusion) || {}).confusion };

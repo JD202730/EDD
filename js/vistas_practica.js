@@ -57,6 +57,10 @@
       card.appendChild(acciones); card.appendChild(pistasP); card.appendChild(fbP); card.appendChild(extraP); card.appendChild(finP);
       zona.appendChild(card);
       S.ui = { card, btnPista, btnOk, btnSalta, btnTeo, acciones, pistasP, fbP, extraP, finP };
+      if (q.pistasInternas) {   // taller interactivo: lleva sus propias pistas y se corrige solo al terminar
+        btnPista.classList.add('oculto'); btnOk.classList.add('oculto');
+        if (S.ctl.onCompletar) S.ctl.onCompletar(() => { if (!S.resuelta && !S.vioSolucion) comprobar(); });
+      }
 
       function pedirPista() {
         if (S.pistas >= q.pistas.length) { Vc.toast('Ya usaste todas las pistas. Prueba la teoría breve o un ejemplo parecido.'); return; }
@@ -86,10 +90,9 @@
         S.resActual = res; S.ansActual = ans;
         const mod = Tipos.mod(q);
         const regrade = () => { const r2 = mod.grade(q, ans, ctx); aplicar(r2, ans, false); };
-        U.vaciar(fbP); const fb = Vc.feedbackNodo(res, ans, q.tipo === 'abierta' ? regrade : null);
-        if (q.tipo === 'abierta' && res.extra) fb.appendChild(h('div', { class: 'panel', style: { marginTop: '8px' } }, h('h4', { text: 'Respuesta modelo' }), h('div', { html: md(res.extra.modelo) })));
-        fbP.appendChild(fb); Tipos.hidratar(fb);
-        if (S.ctl.marcar) S.ctl.marcar(res);
+        U.vaciar(fbP); const fb = Vc.feedbackNodo(res, ans, Tipos.manualizable(q) ? regrade : null);
+        if (res.extra && res.extra.modelo) fb.appendChild(h('div', { class: 'panel', style: { marginTop: '8px' } }, h('h4', { text: 'Respuesta modelo' }), h('div', { html: md(res.extra.modelo) })));
+        fbP.appendChild(fb); Tipos.hidratar(fb);        if (S.ctl.marcar) S.ctl.marcar(res);
         if (res.ok && !S.resuelta) resolver(res, ans);
         else if (!res.ok && primera) fallar(res, ans);
         fbP.scrollIntoView({ block: 'nearest', behavior: 'smooth' });

@@ -79,6 +79,8 @@
       this.maxMs = opts.maxMs || 4000;
       this.t0 = Date.now();
       this.steps = 0; this.depth = 0; this.line = 0; this.file = 'codigo'; this.idc = 0;
+      // ganchos de depuración (traza.js): sentencia ejecutada, objeto creado, atributo asignado, llamada y retorno de funciones propias
+      this.onStep = null; this.onNew = null; this.onSet = null; this.onCall = null; this.onRet = null; this.stack = []; this.frameN = 0;
       this.out = []; this.outLen = 0; this.calls = Object.create(null);
       this.trace = opts.trace ? [] : null; this.traceMax = opts.traceMax || 800;
       this.globalScope = new Scope(null);
@@ -416,7 +418,7 @@
       throw this.mkExc('AttributeError', "'" + this.tname(o) + "' object has no attribute '" + name + "'");
     }
     setAttr(o, name, v) {
-      if (o instanceof PyObj) { o.attrs.set(name, v); return; }
+      if (o instanceof PyObj) { o.attrs.set(name, v); if (this.onSet !== null) this.onSet(o, name, v); return; }
       if (o instanceof PyClass) { o.attrs.set(name, v); return; }
       if (o instanceof PyFunc || o instanceof PyBuiltin) { (o.extra = o.extra || {})[name] = v; return; }
       throw this.mkExc('AttributeError', "'" + this.tname(o) + "' object has no attribute '" + name + "' (no se puede asignar)");
@@ -433,6 +435,7 @@
     }
     instantiate(cls, args, kw) {
       const obj = new PyObj(cls);
+      if (this.onNew !== null) this.onNew(obj);
       const init = this.findAttr(cls, '__init__');
       if (init) { const r = this.call(init, [obj].concat(args), kw); if (r !== null && r !== undefined) throw this.mkExc('TypeError', '__init__() should return None, not ' + this.tname(r)); }
       else if (args.length || (kw && Object.keys(kw).length)) throw this.mkExc('TypeError', cls.name + '() takes no arguments');
@@ -472,11 +475,16 @@
     callFunc(f, args, kw) {
       this.depth++;
       const savedFile = this.file, savedLine = this.line;
+      let fr = null;
       try {
         if (this.depth > this.maxDepth) throw this.mkExc('RecursionError', 'maximum recursion depth exceeded');
         this.tick();
         const scope = this.bindArgs(f, args, kw);
         this.calls[f.name] = (this.calls[f.name] || 0) + 1;
+        if (this.onCall !== null && f.file === 'codigo' && !f.isLambda) {   // marco de pila para el depurador
+          fr = { f, scope, fid: ++this.frameN, depth: this.depth, lineaLlamada: savedLine }; scope.fid = fr.fid;
+          this.stack.push(fr); this.onCall(fr, args);
+        }
         this.file = f.file;
         let tr = null;
         if (this.trace && f.file === 'codigo' && !f.isLambda && this.trace.length < this.traceMax) {
@@ -487,8 +495,9 @@
         if (f.isLambda) ret = this.eval(f.body, scope);
         else { const r = this.execBlock(f.body, scope); if (r && r.t === 'return') ret = r.v; }
         if (tr && this.trace.length < this.traceMax + 1) this.trace.push({ tipo: 'ret', nombre: f.name, valor: this.repr(ret), depth: this.depth });
+        if (fr !== null && this.onRet !== null) this.onRet(fr, ret);
         return ret;
-      } finally { this.depth--; this.file = savedFile; this.line = savedLine; }
+      } finally { if (fr !== null) this.stack.pop(); this.depth--; this.file = savedFile; this.line = savedLine; }
     }
 
     /* ---------- aritmética ---------- */
@@ -753,6 +762,7 @@
     }
     exec(s, scope) {
       this.tick(); this.line = s.line;
+      if (this.onStep !== null && this.file === 'codigo') this.onStep(s, scope, 'sent');
       switch (s.k) {
         case 'ExprStmt': this.eval(s.x, scope); return;
         case 'Assign': {
@@ -781,8 +791,11 @@
           return;
         }
         case 'While': {
-          let broke = false;
-          while (this.truth(this.eval(s.test, scope))) {
+          let broke = false, primera = true;
+          while (true) {
+            if (!primera && this.onStep !== null && this.file === 'codigo') { this.line = s.line; this.onStep(s, scope, 'iter'); }   // cada reevaluación de la condición es un paso
+            primera = false;
+            if (!this.truth(this.eval(s.test, scope))) break;
             this.tick();
             const r = this.execBlock(s.body, scope);
             if (r !== undefined) { if (r === BRK) { broke = true; break; } if (r === CNT) continue; return r; }
@@ -796,6 +809,7 @@
           for (const x of this.iterOf(it)) {
             this.tick();
             this.bindTarget(s.target, x, scope);
+            if (this.onStep !== null && this.file === 'codigo') { this.line = s.line; this.onStep(s, scope, 'iter'); }   // una vuelta del for = un paso con la variable ya actualizada
             const r = this.execBlock(s.body, scope);
             if (r !== undefined) { if (r === BRK) { broke = true; break; } if (r === CNT) continue; return r; }
           }

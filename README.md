@@ -1,10 +1,25 @@
 # Entrenador de Estructuras de Datos (UIS · 41336)
 
 Aplicación web **local y sin dependencias** para estudiar, practicar y evaluarte en: **recursión, Big O, paradigmas
-algorítmicos, árboles, recorridos, BST y AVL**. El contenido sale de las diapositivas del profesor Jheyston Serrano
+algorítmicos, árboles, recorridos, BST, AVL y rojo-negro**. El contenido sale de las diapositivas del profesor Jheyston Serrano
 (ver [`docs/TEMARIO.md`](docs/TEMARIO.md): temario organizado, convenciones del curso y qué es complemento).
 
-* **226 plantillas** (209 activas; 17 preguntas «básicas» retiradas, ver más abajo) en 8 niveles × 3 etapas, que generan variantes
+* **📚 Biblioteca de estudio** (menú *Biblioteca*): teoría completa **escrita dentro de la aplicación** a partir de los seis PDF
+  de clase (S2-C1, S2-C2, S5-C2, S6-C1, S6-C2 y S7-C1 completo, 49 diapositivas). **53 temas en 9 áreas** (recursión, complejidad,
+  paradigmas, fundamentos de árboles, recorridos, BST, AVL, rojo-negro y temas adicionales); cada tema tiene las **mismas diez
+  partes** (definición, explicación intuitiva, teoría formal, procedimiento, código de referencia en Python, ejemplo resuelto,
+  complejidad con justificación, errores frecuentes, preguntas de examen y resumen rápido). Lo que **no** está en los PDF aparece
+  marcado como *contenido complementario*. Incluye 41 **fórmulas y reglas** (variables, cuándo se usa, ejemplo y condiciones), 15
+  **tablas comparativas** (BST/AVL, AVL/rojo-negro, recursión/memoización, fuerza bruta/DP, pre/in/postorden, complejidades temporales
+  y espaciales…), un **Repaso antes del examen** compacto con autoevaluación, índice lateral, **buscador de conceptos**, marcar
+  *estudiado*, *favoritos* y enlaces a la **práctica guiada** y al **examen de cada tema o área**. Los temas de árboles abren
+  **ejemplos interactivos** (más de 12 nodos) con el depurador *Código ↔ Árbol*.
+* **💻 Código ↔ Árbol** (*Laboratorio → Código ↔ Árbol* y dentro de la Biblioteca): el árbol que ves **se reconstruye de la
+  ejecución real** de tu código Python (objetos creados y atributos asignados), línea por línea, hacia adelante y hacia atrás;
+  pausa, paso a paso, reinicio, variables y pila de llamadas; clic en un nodo → qué líneas lo crearon o modificaron; clic en una
+  línea → qué cambió. Funciona con inserciones, búsquedas, eliminaciones, recorridos y rotaciones AVL (y rojo-negro con colores).
+  Lo que no se puede dibujar (árboles hechos con listas o diccionarios, Python no soportado) **se informa**, nunca se simula.
+* **239 plantillas** (222 activas; 17 preguntas «básicas» retiradas, ver más abajo) en 8 niveles × 3 etapas, que generan variantes
   distintas en cada intento (valores, árboles, secuencias de inserción y fragmentos de código cambian).
 * **Modelo de parcial del profesor** (pregunta de 1,0 punto con literales): verdadero/falso **con justificación escrita**, tabla de
   complejidades (con «amortizado»), complejidad con **variable + caso + regla + justificación**, algoritmo en 4 literales (trazado,
@@ -31,8 +46,8 @@ algorítmicos, árboles, recorridos, BST y AVL**. El contenido sale de las diapo
   entregar ves la nota sobre 5,0 y los puntos por pregunta y literal (`0,23 / 0,45`).
 * **Justificaciones escritas**: se evalúan por criterios visibles (palabras clave); tú puedes ajustar cada criterio con las casillas
   «lo expliqué» (autoevaluación). No hay IA ni servicios externos: todo funciona sin internet y sin costo.
-* **Laboratorio**: visualizador BST/AVL con animación de inserciones, eliminaciones, rotaciones y recorridos; visor de la
-  pila de recursión; consola de Python.
+* **Laboratorio**: visualizador BST/AVL con animación de inserciones, eliminaciones, rotaciones y recorridos; depurador
+  *Código ↔ Árbol*; visor de la pila de recursión; consola de Python.
 
 ## Cómo ejecutarlo
 
@@ -76,8 +91,15 @@ js/pyinterp.js        intérprete (recorrido del AST)
 js/pybuiltins.js      funciones integradas, métodos y módulos (math, functools, collections, time, random, sys)
 js/pyapi.js           ejecutar, sesiones de prueba, análisis estático y diagnósticos
 js/arboles.js         árboles: BST/AVL, notación, generadores, dibujo SVG y animaciones
+js/traza.js           traza de ejecución (eventos de objetos y atributos) y reconstrucción del árbol en cada paso
+js/ejemplos_codigo.js programas de ejemplo (BST, AVL, rojo-negro, recorridos, recursión…) para el depurador
 js/temario.js         niveles, etapas y conceptos (teoría breve + ejemplo + fuente)
 js/editor.js          editor de código con resaltado, números de línea y auto-sangría
+js/codigo_arbol.js    depurador «Código ↔ Árbol» (se usa en el Laboratorio y dentro de la Biblioteca)
+js/biblioteca.js      registro de la Biblioteca: temas, fórmulas, tablas, repaso, búsqueda y progreso
+js/teoria_*.js        contenido de la Biblioteca (rec, cx1/cx2, pd, ar, tv, bs, av, rn, ad, formulas, tablas, repaso)
+js/vistas_biblioteca.js  pantallas de la Biblioteca (índice, tema, fórmulas, tablas, repaso, favoritos, búsqueda)
+js/banco_biblioteca.js   ejercicios de los temas que no tenían práctica propia (medir/contar, constantes, clásicos/NP, rojo-negro)
 js/tipos.js, tipos2.js   tipos de pregunta: render + corrección + solución
 js/tipos3.js          tipos «vfj» (V/F con justificación) y «cplx» (complejidad con variable/caso/regla)
 js/taller.js          taller interactivo de árboles (arrastrar nodos, fases, validación estricta) y su tipo de pregunta «taller»
@@ -185,8 +207,20 @@ niveles están en la lista `niveles` del mismo archivo.
   de examen), laboratorio con animaciones, vista móvil (375 px) y tema claro/oscuro; simulación de 288 respuestas y 18
   configuraciones de examen sin errores.
 
+* **Código ↔ Árbol:** 78 comprobaciones sobre los ejemplos (el árbol final coincide con el motor de AVL/BST, las propiedades
+  rojo-negro se cumplen, el avance y el retroceso son deterministas, el historial de cada nodo apunta a las líneas reales, un árbol de
+  60 nodos, nombres de atributo personalizados y errores/límites informados).
+* **Biblioteca:** 3 469 comprobaciones: las diez partes de los 53 temas, enlaces internos, conceptos del temario ↔ temas,
+  búsqueda, 59 bloques de código ejecutados con el intérprete del entrenador **y** con **CPython 3.12** (salida idéntica a la
+  declarada), 41 fórmulas y 15 tablas bien formadas, las 67 pantallas se dibujan, el examen y la práctica de **cada tema** se generan,
+  los ejemplos de BST/AVL/rojo-negro llegan a más de 12 nodos y una **lista de 419 frases clave de los 6 PDF** (diapositiva por
+  diapositiva) aparece en el texto. El rojo-negro (con ramas espejo completas) se verificó con 24 555 operaciones aleatorias en CPython
+  (raíz negra, sin rojos seguidos, misma altura negra, inorden, punteros al padre y altura ≤ 2·log₂(n+1)).
+
 Para repetirlas: `python pruebas/servidor_pruebas.py`, abre <http://127.0.0.1:8765/pruebas.html>, pulsa los botones
-(intérprete, banco completo, AVL, talleres interactivos, complejidades medidas) y luego `python pruebas/comparar_con_cpython.py`.
+(intérprete, banco completo, AVL, talleres interactivos, complejidades medidas, Código ↔ árbol, **Biblioteca**) y luego
+`python pruebas/comparar_con_cpython.py` y `python pruebas/comparar_biblioteca.py`. (Para escribir contenido nuevo con salida
+verificada: pon `esperado: '@@id#n'`, corre «Biblioteca» y ejecuta `python pruebas/fijar_esperados.py`.)
 
 ## Preguntas «básicas» retiradas
 
@@ -207,8 +241,15 @@ reactivarlas basta quitar su id de esa lista.
 * **Preguntas abiertas:** se corrigen por criterios con palabras clave; puede haber falsos negativos con redacciones muy
   distintas (por eso puedes marcar a mano los criterios que sí cubriste) y falsos positivos si nombras las palabras sin
   explicar. Úsalas como autoevaluación guiada.
-* **Rojo-negro:** el PDF de AVL disponible llega hasta la diapositiva 20; lo que se dice de rojo-negro es complemento
-  general (marcado como tal). Los dos PDF de la Semana 2 se usaron para el nivel 2 (Big O).
+* **Rojo-negro:** la Biblioteca y el banco usan ya el PDF de S7-C1 **completo** (49 diapositivas): reglas, inserción (3 casos),
+  eliminación con doble negro (4 casos) y el código de apoyo. La clase deja las ramas espejo del código como «…»; están escritas
+  completas y marcadas como complementarias. Las cotas de rotaciones del rojo-negro (≤ 2 por inserción, ≤ 3 por eliminación) y la
+  del AVL (< 1,44·log₂(n+2)) también son complementarias.
+* **Cifra de las diapositivas a corregir:** S2-C1 d.13 y S2-C2 d.15 dicen que con n = 10⁶ y 10⁹ op/s un algoritmo n² tarda
+  «≈ 11 días»; la cuenta correcta es 10¹² ÷ 10⁹ = 10³ s ≈ 17 minutos (11 días son ≈ 10¹⁵ operaciones). El entrenador usa la
+  cuenta correcta y lo indica.
+* **Código ↔ Árbol:** solo se dibujan objetos de clases propias con atributos de hijo izquierdo/derecho (configurables); las
+  trazas muy largas se truncan (60 000 pasos / 600 000 eventos) y se avisa. La biblioteca no usa IA ni servicios externos.
 * **Eficiencia como prueba:** se mide con un límite de *pasos* del intérprete, no con tiempo real. Los *costos ocultos* de Python se
   modelan solo para las operaciones listadas arriba (en las pruebas de eficiencia); otras operaciones ocultas cuentan como un paso.
 * **Justificaciones escritas:** se evalúan por palabras clave y criterios visibles (puedes ajustarlos a mano con «lo expliqué»); una

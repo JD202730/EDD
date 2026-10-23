@@ -2,7 +2,7 @@
 (function (global) {
   'use strict';
   const ET = global.ET, U = ET.U, h = U.h, Tipos = ET.Tipos, Arb = ET.Arb, Tm = ET.Temario, M = ET.Motor;
-  const Vc = ET.Vc = {};
+  const Vc = ET.Vc = ET.Vc || {};
   const md = U.md, mdi = U.mdInline;
 
   Vc.toast = function (msg, ms) {
@@ -33,9 +33,15 @@
         h('h3', { text: c.nombre }),
         h('div', { class: 'fila' }, h('span', { class: 'chip', text: 'Fuente: ' + c.f }), c.comp ? h('span', { class: 'chip comp', text: 'Incluye complemento (no está en los PDF)' }) : null),
         h('div', { html: md(c.t) }),
-        h('div', { class: 'cuadro-ej' }, h('strong', { text: 'Ejemplo' }), h('div', { html: md(c.e) }))));
+        h('div', { class: 'cuadro-ej' }, h('strong', { text: 'Ejemplo' }), h('div', { html: md(c.e) })),
+        Vc.enlacesBiblioteca(id)));
     });
     return cont;
+  };
+  /** enlaces «📚 Biblioteca» de un concepto (null si ningún tema de la Biblioteca lo trata) */
+  Vc.enlacesBiblioteca = function (concepto) {
+    const ts = ET.Biblioteca ? ET.Biblioteca.temasDeConcepto(concepto).slice(0, 2) : []; if (!ts.length) return null;
+    return h('div', { class: 'fila', style: { marginTop: '8px' } }, h('span', { class: 'peq tenue', text: 'Más a fondo en la Biblioteca:' }), ts.map(t => h('a', { class: 'btn sec peq', href: '#/biblioteca/' + t.id }, '📚 ' + t.titulo)));
   };
   Vc.teoriaModal = function (ids) { Vc.modal('Teoría breve', Vc.teoriaNodo(ids.slice(0, 3))); };
 

@@ -35,6 +35,15 @@
     hero.appendChild(xpBar);
     host.appendChild(hero);
 
+    // biblioteca de estudio
+    const Bib = ET.Biblioteca;
+    if (Bib && Bib.temas.length) {
+      const g = Bib.progresoGlobal(), sig = Bib.siguientePendiente();
+      host.appendChild(h('div', { class: 'card espacio bib-hero' },
+        h('div', { class: 'fila sep' }, h('div', { style: { flex: '1 1 320px' } }, h('h2', { style: { margin: '0 0 4px' }, text: '📚 Biblioteca de estudio' }), h('p', { class: 'peq suave', style: { margin: '0 0 8px' }, text: 'Teoría completa de todas las diapositivas, fórmulas, comparaciones, ejemplos interactivos (código ↔ árbol) y un repaso para el día antes del examen.' }), Vc.barra(g.p), h('div', { class: 'peq tenue', text: g.n + ' de ' + g.total + ' temas estudiados' })),
+          h('div', { class: 'acciones', style: { margin: 0 } }, sig ? h('a', { class: 'btn', href: '#/biblioteca/' + sig.id }, (g.n ? 'Continuar: ' : 'Empezar: ') + sig.titulo) : null, h('a', { class: 'btn sec', href: '#/biblioteca' }, 'Índice'), h('a', { class: 'btn sec', href: '#/biblioteca/repaso' }, '⚡ Repaso')))));
+    }
+
     // selector de modo
     const cont = primera ? primera.ruta : '#/practica/1/A';
     host.appendChild(h('h2', { class: 'espacio', text: 'Elige cómo entrenar' }));
@@ -104,7 +113,7 @@
         h('div', { class: 'acciones' }, h('a', { class: 'btn' + (des ? '' : ' sec'), href: des ? '#/practica/' + n + '/' + e : '#/nivel/' + n, 'aria-disabled': des ? null : 'true', onclick: ev => { if (!des) { ev.preventDefault(); Vc.toast('Primero completa la etapa anterior (≥ ' + M.config().umbral + ' %).'); } } }, des ? 'Practicar' : 'Bloqueada'))));
     });
     host.appendChild(g);
-    host.appendChild(h('div', { class: 'acciones' }, h('a', { class: 'btn sec', href: '#/examen/config/nivel-' + n }, '⏱ Examen de este nivel'), h('a', { class: 'btn sec', href: '#/teoria/' + n }, '📖 Teoría completa'), (n === 6 || n === 7) ? h('a', { class: 'btn sec', href: '#/lab/taller' }, '✋ Taller interactivo (mover nodos)') : null));
+    host.appendChild(h('div', { class: 'acciones' }, h('a', { class: 'btn sec', href: '#/examen/config/nivel-' + n }, '⏱ Examen de este nivel'), h('a', { class: 'btn sec', href: '#/teoria/' + n }, '📖 Teoría completa'), (ET.Biblioteca ? ET.Biblioteca.areas.filter(x => x.nivel === n && ET.Biblioteca.temasDeArea(x.id).length).map(a => h('a', { class: 'btn sec', href: '#/biblioteca/area/' + a.id }, '📚 Biblioteca: ' + a.nombre)) : null), (n === 6 || n === 7) ? h('a', { class: 'btn sec', href: '#/lab/taller' }, '✋ Taller interactivo (mover nodos)') : null));
     // conceptos
     host.appendChild(h('h2', { class: 'espacio', text: 'Conceptos del nivel' }));
     const lista = h('div', { class: 'card' });

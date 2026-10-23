@@ -5,9 +5,11 @@
   const V = ET.Vistas = ET.Vistas || {};
 
   /* ===================== Mis errores ===================== */
-  V.errores = function (host) {
+  V.errores = function (host, args, query) {
     const todos = M.errores(); const pend = todos.filter(e => !e.resuelto);
+    const temaF = query && query.tema && ET.Biblioteca ? ET.Biblioteca.porId[query.tema] : null;   // filtro por tema de la Biblioteca (#/errores?tema=…)
     host.appendChild(h('h1', { text: 'Mis errores' }));
+    if (temaF) host.appendChild(h('div', { class: 'rec aviso' }, h('div', { class: 'ic', text: '📚' }), h('div', { text: 'Mostrando solo los errores del tema «' + temaF.titulo + '».' }), h('a', { class: 'btn sec peq', href: '#/errores' }, 'Quitar filtro'), h('a', { class: 'btn sec peq', href: '#/biblioteca/' + temaF.id }, 'Volver al tema')));
     host.appendChild(h('p', { class: 'suave', text: 'Todo lo que has fallado en práctica y exámenes, con tu respuesta, la esperada y una explicación. Practica ejercicios similares hasta dominar el concepto.' }));
     const deb = M.debiles().slice(0, 6); const conf = M.confusiones().filter(c => c.n >= 1).slice(0, 6);
     const resumen = h('div', { class: 'grid g2' });
@@ -31,7 +33,7 @@
 
     function pintar() {
       U.vaciar(lista);
-      let datos = M.errores().filter(e => (filtro === 'todos' || (filtro === 'pend') === !e.resuelto) && (!nivelF || e.nivel === nivelF));
+      let datos = M.errores().filter(e => (filtro === 'todos' || (filtro === 'pend') === !e.resuelto) && (!nivelF || e.nivel === nivelF) && (!temaF || (e.conceptos || []).some(c => temaF.conceptos.includes(c))));
       if (!datos.length) { lista.appendChild(Vc.vacio(filtro === 'pend' ? '🎉' : '🗂', filtro === 'pend' ? 'No tienes errores pendientes' : 'Nada por aquí', 'Cuando falles una pregunta aparecerá en esta lista con su explicación.')); return; }
       datos.forEach(e => {
         let q; try { q = Banco.instanciar(e.tplId, e.seed, e.opts); } catch (x) { return; }
@@ -50,6 +52,7 @@
           h('a', { class: 'btn peq', href: '#/reintento/' + encodeURIComponent(e.key) }, '↻ Reintentar este ejercicio'),
           h('a', { class: 'btn sec peq', href: '#/repaso?foco=' + encodeURIComponent(concs.join(',')) }, '🎯 Ejercicios similares'),
           h('button', { class: 'btn sec peq', onclick: () => Vc.teoriaModal(concs) }, '📖 Teoría'),
+          (() => { const bt = ET.Biblioteca ? ET.Biblioteca.temasDeConcepto(concs[0]) : []; return bt.length ? h('a', { class: 'btn sec peq', href: '#/biblioteca/' + bt[0].id }, '📚 Biblioteca: ' + bt[0].titulo) : null; })(),
           h('span', { class: 'esp' }),
           h('button', { class: 'btn fantasma peq', onclick: () => { M.marcarResuelto(e.key, !e.resuelto); ET.App.render(); } }, e.resuelto ? 'Marcar pendiente' : 'Marcar resuelto'),
           h('button', { class: 'btn fantasma peq', onclick: () => { M.borrarError(e.key); ET.App.render(); } }, 'Eliminar')));
@@ -60,15 +63,26 @@
   };
 
   /* ===================== Laboratorio ===================== */
-  V.lab = function (host, args) {
+  V.lab = function (host, args, query) {
     const tab = args[0] || 'arboles';
     host.appendChild(h('h1', { text: 'Laboratorio' }));
-    host.appendChild(h('div', { class: 'tabs' }, [['arboles', '🌳 Árboles BST/AVL'], ['taller', '✋ Taller interactivo'], ['recursion', '↻ Pila de recursión'], ['consola', '⌨ Consola Python']].map(([k, t]) => h('a', { class: 'tab' + (k === tab ? ' act' : ''), href: '#/lab/' + k, text: t }))));
+    host.appendChild(h('div', { class: 'tabs' }, [['arboles', '🌳 Árboles BST/AVL'], ['codigo', '💻 Código ↔ Árbol'], ['taller', '✋ Taller interactivo'], ['recursion', '↻ Pila de recursión'], ['consola', '⌨ Consola Python']].map(([k, t]) => h('a', { class: 'tab' + (k === tab ? ' act' : ''), href: '#/lab/' + k, text: t }))));
+    if (tab === 'codigo') return labCodigo(host, query || {});
     if (tab === 'recursion') return labRecursion(host);
     if (tab === 'consola') return labConsola(host);
     if (tab === 'taller') return labTaller(host);
     return labArboles(host);
   };
+
+  /* ===================== Laboratorio: código ↔ árbol (depurador sincronizado) ===================== */
+  function labCodigo(host, query) {
+    host.appendChild(h('p', { class: 'suave', html: U.mdInline('Escribe (o elige un ejemplo) código Python que construya, busque, elimine, recorra o rote un árbol y **ejecútalo paso a paso**: el árbol que ves es el que **tu código** va construyendo (se reconstruye de la ejecución real, hacia adelante y hacia atrás), con árboles de **más de 12 nodos**. Pausa, avanza, retrocede, examina variables y referencias, y toca un nodo para ver **qué instrucciones lo crearon o modificaron**.') }));
+    const e0 = ET.Ejemplos.porId[query.ej] || ET.Ejemplos.porId['bst-insertar'];
+    const caja = h('div', { class: 'card' }); host.appendChild(caja);
+    const dep = Vc.codigoArbol(caja, { codigo: e0.codigo, desc: e0.desc });
+    if (query.ej && ET.Ejemplos.porId[query.ej] || query.auto) dep.ejecutar();
+    return () => dep.destruir();
+  }
 
   /* ===================== Laboratorio: taller interactivo (mover nodos) ===================== */
   function labTaller(host) {

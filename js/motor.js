@@ -16,7 +16,8 @@
     config: { umbral: 80, desbloqueoLibre: false, tema: 'auto', animVel: 650, ejecutarEnExamen: false },
     xp: 0, racha: { dias: 0, ultimo: null },
     stats: { resp: 0, ok1: 0, sinPistas: 0, pistas: 0, exResp: 0, exOk: 0 },
-    etapas: {}, conceptos: {}, tpls: {}, confusiones: {}, errores: {}, historial: [], examenes: [], examenActivo: null, objetivos: {}
+    etapas: {}, conceptos: {}, tpls: {}, confusiones: {}, errores: {}, historial: [], examenes: [], examenActivo: null, objetivos: {},
+    biblioteca: { estudiados: {}, favoritos: {}, ultimo: null }
   });
   let E = cargar();
   function cargar() {
@@ -156,7 +157,11 @@
       const d = M.debiles(nivel).slice(0, 3).map(x => x.id);
       if (d.length && Math.random() < 0.35) foco = d;
     }
-    if (foco) { const sub = pool.filter(t => t.c.some(c => foco.includes(c))); if (sub.length) pool = sub; else if (!nivel) pool = Banco.filtrar({}); }
+    if (foco) {
+      const sub = pool.filter(t => t.c.some(c => foco.includes(c)));
+      if (sub.length) pool = sub;
+      else if (!nivel) { const sub2 = Banco.filtrar({ conceptos: foco }); pool = sub2.length ? sub2 : Banco.filtrar({}); }   // práctica de un tema de la Biblioteca aunque su nivel siga bloqueado
+    }
     if (!pool.length) pool = Banco.filtrar({ niveles: [nivel || 1] });
     const obj = nivel ? M.objetivo(nivel, etapa) : 3; const ult = ctx.ultimos || [];
     const t = new U.RNG(U.newSeed()).weighted(pool, tp => {
@@ -208,6 +213,11 @@
     let niveles = cfg.acumulativo ? M.nivelesDesbloqueados() : cfg.niveles;
     if (!niveles || !niveles.length) niveles = [1];
     let pool = Banco.filtrar({ niveles, dif: difR }).filter(t => !t.soloPractica);   // los talleres interactivos son solo de práctica
+    if (cfg.conceptos && cfg.conceptos.length) {   // examen de un tema o área de la Biblioteca: solo plantillas de esos conceptos (si hay suficientes)
+      const sub = Banco.filtrar({ conceptos: cfg.conceptos, dif: difR }).filter(t => !t.soloPractica);
+      const sub2 = sub.length >= 3 ? sub : Banco.filtrar({ conceptos: cfg.conceptos }).filter(t => !t.soloPractica);
+      if (sub2.length) pool = sub2;
+    }
     pool.forEach(t => Banco.categoriaDe(t));
     if (!cfg.incluirVF) pool = pool.filter(t => t._tipo !== 'vf');
     if (!cfg.incluirBigO) pool = pool.filter(t => t._tipo !== 'bigo');
@@ -276,6 +286,12 @@
     return entry;
   };
   M.actualizarExamen = (id, patch) => { const x = M.examenPorId(id); if (x) { Object.assign(x, patch); guardar(); } };
+
+  /* ============ biblioteca de estudio (temas estudiados y favoritos) ============ */
+  M.biblioteca = () => { const b = E.biblioteca || (E.biblioteca = { estudiados: {}, favoritos: {}, ultimo: null }); b.estudiados = b.estudiados || {}; b.favoritos = b.favoritos || {}; return b; };
+  M.bibMarcar = (id, v) => { const b = M.biblioteca(); if (v) b.estudiados[id] = Date.now(); else delete b.estudiados[id]; guardar(); };
+  M.bibFavorito = (id, v) => { const b = M.biblioteca(); if (v) b.favoritos[id] = Date.now(); else delete b.favoritos[id]; guardar(); };
+  M.bibUltimo = id => { const b = M.biblioteca(); if (b.ultimo !== id) { b.ultimo = id; guardarDif(); } };
 
   /* ============ recomendaciones ============ */
   M.recomendaciones = function () {

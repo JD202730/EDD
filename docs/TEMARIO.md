@@ -9,11 +9,13 @@ Análisis previo a la programación. Fuente principal: los PDF de clase del prof
 | **S5-C2** | Clase2_RecursionParadigmas | 23 | Niveles 1 y 3 |
 | **S6-C1** | Clase1_ArbolesRecorridos | 27 | Niveles 4 y 5 |
 | **S6-C2** | Clase2_BST | 20 | Nivel 6 |
-| **S7-C1** | Clase1_BalanceoAVL-1-20 | 20 de 44 | Nivel 7 (**solo hasta la diap. 20**) |
+| **S7-C1** | Clase1_BalanceoAVL | 49 (completo) | Nivel 7: AVL (d.1-21, 34-39, código 42-44) y rojo-negro (d.22-33, código 45-49) |
 
 > Los dos PDF de S2 no estaban en tu lista, pero están en la misma carpeta y el Nivel 2 (Big O) casi no tiene
 > contenido en los 4 adjuntos; los usé solo para alinear la terminología de ese nivel.
-> El PDF de AVL está recortado ("1-20"): **no incluye rojo-negro**. Lo que se diga de rojo-negro es *complemento general* y se marca como tal en la app.
+> El PDF de S7-C1 ya está completo (49 diapositivas): incluye **rojo-negro** (reglas, inserción en 3 casos, eliminación con doble negro en 4 casos, código de apoyo). Las ramas espejo del código, que la clase deja como «…», y las cotas de rotaciones/altura son *complemento* y se marcan como tal.
+> **Ojo con una cifra:** S2-C1 d.13 y S2-C2 d.15 dicen «n² con n = 10⁶ tarda ≈ 11 días» a 10⁹ op/s; la cuenta correcta es 10¹² ÷ 10⁹ = 1000 s ≈ 17 min.
+> La **Biblioteca de estudio** (`js/teoria_*.js`) desarrolla todo este temario en 53 temas con diez partes cada uno; `pruebas/cobertura_pdf.js` lista las frases clave de cada diapositiva que la prueba verifica.
 
 ## Convenciones del curso (la app las respeta en enunciados y correcciones)
 
@@ -75,7 +77,8 @@ Etapa **A** = fundamentos · **B** = aplicación · **C** = dominio / trampas / 
 ### Nivel 6 — BST (S6-C2 completo)
 `bs_prop` (propiedad en todo el subárbol; verificación) · `bs_buscar` (O(h)) · `bs_inorden` (inorden ordenado) · `bs_insertar` (cuelga hoja; sin duplicados) · `bs_eliminar` (0/1/2 hijos; predecesor) · `bs_minmax` · `bs_ordenins` (orden de inserción; [1..5] → h=4; [3,2,4,1,5] → h=2) · `bs_altura` (O(h): log n vs n; tabla de operaciones) · `bs_hash` (BST vs tabla hash) · `bs_errores`.
 
-### Nivel 7 — AVL y balanceo (S7-C1 d.1-20)
+### Nivel 7 — AVL, balanceo y rojo-negro (S7-C1 completo)
+Conceptos de rojo-negro: `rn_def` (reglas, altura negra) · `rn_ins` (3 casos) · `rn_del` (doble negro, 4 casos) · `rn_vs` (AVL frente a rojo-negro).
 `av_prob` (BST degenerado; auto-balanceado = O(log n)) · `av_factor` (altura, factor, |f|≤1) · `av_altura` (recalcular por el camino) · `av_rotsimple` (rot. izq./der., O(1), conserva inorden, devuelve nueva raíz local) · `av_ll` `av_rr` `av_lr` `av_rl` (los cuatro casos, conceptos separados para detectar confusiones LR↔RL) · `av_insertar` (BST + rebalanceo; `raiz = insertar(raiz, v)`) · `av_primer` (primer nodo desbalanceado = el más profundo del camino) · `av_eliminar` (sucesor, decisión por el factor del hijo, varias rotaciones) · `av_complejidad` · `av_codigo` (alturas/rotaciones en Python) · `av_compara` (AVL vs BST vs rojo-negro: *complemento*).
 
 ### Nivel 8 — Retos integradores

@@ -9,7 +9,7 @@
     'S5-C2': 'Clase2_RecursionParadigmas (Semana 5, Clase 2)',
     'S6-C1': 'Clase1_ArbolesRecorridos (Semana 6, Clase 1)',
     'S6-C2': 'Clase2_BST (Semana 6, Clase 2)',
-    'S7-C1': 'Clase1_BalanceoAVL-1-20 (Semana 7, Clase 1, diap. 1-20)'
+    'S7-C1': 'Clase1_BalanceoAVL (Semana 7, Clase 1: AVL y rojo-negro, 49 diapositivas)'
   };
 
   const niveles = [
@@ -19,7 +19,7 @@
     { id: 4, nombre: 'Fundamentos de árboles', icono: '⌥', color: '#84cc16', fuente: 'S6-C1', resumen: 'Definición, vocabulario, profundidad y altura, tipos de árboles binarios, nodos en Python.' },
     { id: 5, nombre: 'Recorridos de árboles', icono: '⇣', color: '#f59e0b', fuente: 'S6-C1', resumen: 'Preorden, inorden, postorden, por niveles, reconstrucción y árboles de expresión.' },
     { id: 6, nombre: 'Árboles BST', icono: '⌕', color: '#ef4444', fuente: 'S6-C2', resumen: 'Propiedad de orden, búsqueda, inserción, eliminación (0/1/2 hijos), O(h) y degeneración.' },
-    { id: 7, nombre: 'Árboles AVL y balanceo', icono: '⚖', color: '#d946ef', fuente: 'S7-C1', resumen: 'Factor de balance, rotaciones, los cuatro casos, inserción y eliminación AVL.' },
+    { id: 7, nombre: 'Árboles AVL y balanceo', icono: '⚖', color: '#d946ef', fuente: 'S7-C1', resumen: 'Factor de balance, rotaciones, los cuatro casos, inserción y eliminación AVL, y árboles rojo-negro (reglas, inserción y eliminación).' },
     { id: 8, nombre: 'Retos integradores', icono: '★', color: '#8b5cf6', fuente: 'Todos', resumen: 'Problemas que combinan recursión, complejidad, paradigmas, BST y AVL.' }
   ];
 
@@ -116,7 +116,7 @@ Esquema: \`if base: return valor\` y luego \`return combinar(f(más_pequeño))\`
     `Al crecer n solo importa el **término dominante**: constantes y términos de menor grado se desvanecen. En T(n) = n²/2 − n/2 el término n/2 pesa 9,1 % con n = 10, 1 % con n = 100 y 0,0001 % con n = 10⁶. Por eso decimos que es **cuadrático**: T(n) ∼ n².`,
     `T(n) = 3n² + 10n + 7: para n grande domina 3n². La clase es n².`);
   add('cx_tasas', 2, 'Tasas de crecimiento', 'S2-C1 · diap. 13; S2-C2 · diap. 15-16',
-    `Las tasas de crecimiento separan lo viable de lo inviable más que cualquier hardware. Con n = 10⁶ a 10⁹ operaciones/s: log₂ n ≈ 20; n → 0,001 s; n log₂ n ≈ 2×10⁷ → 0,02 s; n² = 10¹² → ≈ 11 días; 2ⁿ es inalcanzable. Jerarquía: **1 < log n < n < n log n < n² < 2ⁿ**. Hasta n log n se procesan millones de datos en segundos; desde n² el límite ronda las decenas de miles; desde 2ⁿ, unas pocas decenas.`,
+    `Las tasas de crecimiento separan lo viable de lo inviable más que cualquier hardware. Con n = 10⁶ a 10⁹ operaciones/s: log₂ n ≈ 20; n → 0,001 s; n log₂ n ≈ 2×10⁷ → 0,02 s; n² = 10¹² → 10³ s ≈ 17 minutos (las diapositivas dicen «≈ 11 días», pero 11 días son ≈ 10¹⁵ operaciones: la cuenta correcta es 10¹² ÷ 10⁹ = 10³ s); 2ⁿ es inalcanzable. Jerarquía: **1 < log n < n < n log n < n² < 2ⁿ**. Hasta n log n se procesan millones de datos en segundos; desde n² el límite ronda las decenas de miles; desde 2ⁿ, unas pocas decenas.`,
     `Con 10⁹ op/s y n = 10⁵: n² = 10¹⁰ operaciones → 10 s; n log n ≈ 1,7×10⁶ → ≈ 0,0017 s.`);
   add('cx_casos', 2, 'Mejor, peor y caso promedio', 'S2-C1 · diap. 14-17',
     `**Mejor caso**: entrada que minimiza el trabajo. **Peor caso**: la que lo maximiza. **Promedio**: valor esperado sobre una distribución. En búsqueda secuencial: mejor 1 comparación, peor n, promedio (n+1)/2.
@@ -497,12 +497,40 @@ A diferencia de la inserción, un borrado puede requerir **varias rotaciones** s
   add('av_codigo', 7, 'Implementación en Python', 'S7-C1 · diap. 17-18 y 20',
     `Piezas: \`altura(n)\` (−1 si es None), \`factor(n)\`, \`actualizar(n)\`, \`rot_der\`, \`rot_izq\` e \`insertar\` que, tras insertar recursivamente, actualiza la altura y rebalancea con los cuatro casos. Errores típicos: actualizar alturas en el orden equivocado (primero el nodo que **bajó**, luego el que **subió**), no devolver la nueva raíz local, y no reasignar \`raiz = insertar(raiz, v)\`.`,
     `Si \`rot_der\` termina con \`return y\` en vez de \`return x\`, el árbol conserva la raíz vieja y el nodo \`x\` queda desconectado.`);
-  add('av_compara', 7, 'AVL vs. BST vs. rojo-negro', 'S7-C1 · diap. 3 y 5 (rojo-negro: complemento general, no está en los PDF recortados)',
+  add('av_compara', 7, 'AVL vs. BST vs. rojo-negro', 'S7-C1 · diap. 5, 22-23 y 33-34',
     `- **BST**: sin garantía de balance (altura hasta n−1): O(n) en el peor caso.
-- **AVL**: balance estricto (|f| ≤ 1): altura ≈ log₂ n, búsquedas muy rápidas, pero más rotaciones al insertar/eliminar.
+- **AVL**: balance estricto (|f| ≤ 1): altura ≈ log₂ n, búsquedas muy rápidas, pero más rotaciones al insertar/eliminar. Para **lectura**.
+- **Rojo-negro**: balance más laxo (altura ≤ 2·log₂(n+1)), menos rotaciones al insertar/eliminar; lo usan \`std::map\` de C++, \`TreeMap\` de Java y el planificador de Linux. Para **escritura**.
 
-*Complemento (rojo-negro, no incluido en los PDF recortados):* balance más relajado (altura ≤ 2·log₂(n+1)), menos rotaciones al insertar/eliminar; lo usan muchas bibliotecas (\`std::map\` de C++, \`TreeMap\` de Java). Regla práctica: AVL si predominan las consultas; rojo-negro si hay muchas inserciones y eliminaciones.`,
-    `Diccionario que casi no cambia y se consulta mucho → AVL. Estructura con inserciones y borrados constantes → rojo-negro.`, true);
+Ambos garantizan O(log n); la diferencia es el compromiso lectura/escritura.`,
+    `Diccionario que casi no cambia y se consulta mucho → AVL. Estructura con inserciones y borrados constantes → rojo-negro.`);
+
+  add('rn_def', 7, 'Reglas del árbol rojo-negro y altura negra', 'S7-C1 · diap. 22-23',
+    `Un **árbol rojo-negro** es un BST auto-balanceado cuyos nodos son **rojos o negros** con estas reglas:
+- la **raíz** y las **hojas NIL** son **negras**;
+- un **nodo rojo no puede tener hijos rojos**;
+- **todo camino** de un nodo a sus hojas NIL tiene el **mismo número de nodos negros** (**altura negra**).
+
+Como no hay dos rojos seguidos, el camino más largo es a lo sumo el **doble** del más corto: la altura es O(log n) y también buscar, insertar y eliminar.`,
+    `En 13(8(1,11),17(,25)) con 13, 1, 11 y 17 negros y 8 y 25 rojos, cada camino a NIL tiene **3 nodos negros** (contando la hoja NIL): es válido.`);
+  add('rn_ins', 7, 'Inserción en un rojo-negro (3 casos)', 'S7-C1 · diap. 24-27',
+    `El nodo nuevo entra **rojo**. Si su padre P también es rojo (Q = abuelo):
+- **Caso 3 (el otro hijo de Q, el tío, es rojo):** recolorear (P y tío → negro, Q → rojo) y continuar desde Q.
+- **Caso 1 (zigzag, tío negro):** rotar P para alinear y pasar al caso 2.
+- **Caso 2 (línea recta, tío negro):** Q → rojo, P → negro y rotar; termina.
+
+Al final, la **raíz** se pinta siempre de **negro**.`,
+    `Insertar 1 en \`10n(5r,15r)\`: padre 5 rojo y tío 15 rojo → caso 3: 5 y 15 negros, 10 rojo (y la raíz vuelve a negro): \`10n(5n(1r,),15n)\`.`);
+  add('rn_del', 7, 'Eliminación en un rojo-negro (doble negro)', 'S7-C1 · diap. 28-32',
+    `Se borra como en un BST (con el sucesor si hay dos hijos). **Borrar un rojo no altera nada**; borrar un **negro** deja un **doble negro** que se traslada hacia arriba con 4 casos según el hermano H y sus hijos:
+1. **H rojo:** H negro, padre rojo, rotar el padre; pasa a 2, 3 o 4.
+2. **H negro y sobrinos negros:** H rojo; el negro de más sube al padre (si era rojo, termina).
+3. **Sobrino cercano rojo:** intercambiar colores de H y el sobrino y rotar H; pasa al caso 4.
+4. **Sobrino lejano rojo:** H toma el color del padre, padre y sobrino lejano negros, rotar el padre; **termina**.`,
+    `Eliminar 1 en \`2n(1n,3n(,4r))\`: hermano 3 negro con sobrino lejano 4 rojo → caso 4 → \`3n(2n,4n)\`.`);
+  add('rn_vs', 7, 'Rojo-negro frente a AVL', 'S7-C1 · diap. 33-34',
+    `**AVL:** balance más estricto, altura más baja (búsquedas más rápidas), más rotaciones; para cuando dominan las búsquedas (bases de datos, índices). **Rojo-negro:** balance más laxo, altura algo mayor, menos rotaciones; para cuando dominan las modificaciones (\`std::map\`, \`TreeMap\`, planificador de Linux). Ambos garantizan O(log n).`,
+    `Índice consultado millones de veces y casi sin cambios → AVL. Inserciones y borrados constantes → rojo-negro.`);
 
   /* ===================== NIVEL 8 ===================== */
   add('in_paradigma', 8, 'Elegir y justificar un paradigma', 'S5-C2 · diap. 9, 11 y 15',

@@ -313,6 +313,7 @@
     const svg = U.svgEl('svg', { viewBox: '0 0 ' + W + ' ' + H, class: 'arbol-svg', role: 'img', 'aria-label': 'Diagrama de árbol: ' + nota(t) });
     svg.style.width = Math.min(W, opts.maxAncho || 760) + 'px';
     svg.style.maxWidth = '100%';
+    if (opts.sinReducir) { svg.style.width = W + 'px'; svg.style.maxWidth = 'none'; }   // árboles grandes: tamaño real, con desplazamiento
     const gEdges = U.svgEl('g', { class: 'aristas' }); const gNodes = U.svgEl('g', { class: 'nodos' });
     svg.appendChild(gEdges); svg.appendChild(gNodes);
     const refs = new Map();
@@ -335,7 +336,9 @@
         const e = etiquetaNodo(n, opts.etiquetas);
         if (e) { const lb = U.svgEl('text', { x: g.r + 3, y: g.r + 1, class: 'etq ' + (opts.etiquetas === 'factor' && Math.abs(factor(n)) >= 2 ? 'mala' : ''), 'text-anchor': 'start' }); lb.textContent = e; gr.appendChild(lb); }
       }
-      if (opts.onClick) { gr.addEventListener('click', () => opts.onClick(n.v, key)); gr.setAttribute('tabindex', '0'); gr.setAttribute('role', 'button'); gr.addEventListener('keydown', ev => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); opts.onClick(n.v); } }); }
+      if (opts.etqNodo) { const e = opts.etqNodo(n, key); if (e) { const lb2 = U.svgEl('text', { x: g.r + 3, y: g.r + 1, class: 'etq ' + (/!$/.test(e) ? 'mala' : ''), 'text-anchor': 'start' }); lb2.textContent = String(e).replace(/!$/, ''); gr.appendChild(lb2); } }
+      if (opts.tags && opts.tags[key]) { const tg = U.svgEl('text', { x: 0, y: -g.r - 5, class: 'tag', 'text-anchor': 'middle' }); tg.textContent = opts.tags[key]; gr.appendChild(tg); }
+      if (opts.onClick) { gr.addEventListener('click', () => opts.onClick(n.v, key)); gr.setAttribute('tabindex', '0'); gr.setAttribute('role', 'button'); gr.addEventListener('keydown', ev => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); opts.onClick(n.v, key); } }); }
       gNodes.appendChild(gr); refs.set(key, gr);
     });
     host.appendChild(svg);

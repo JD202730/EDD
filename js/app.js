@@ -3,8 +3,8 @@
   'use strict';
   const ET = global.ET, U = ET.U, h = U.h, M = ET.Motor, V = ET.Vistas, Tm = ET.Temario;
   const App = ET.App = {};
-  const NAV = [['panel', '🏠', 'Panel'], ['practica', '🧭', 'Práctica'], ['examen', '⏱', 'Examen'], ['errores', '📝', 'Errores'], ['lab', '🧪', 'Lab'], ['ajustes', '⚙', 'Ajustes']];
-  const ACTIVO = { panel: 'panel', nivel: 'panel', teoria: 'panel', practica: 'practica', repaso: 'practica', reintento: 'errores', examen: 'examen', errores: 'errores', lab: 'lab', ajustes: 'ajustes' };
+  const NAV = [['panel', '🏠', 'Panel'], ['biblioteca', '📚', 'Biblioteca'], ['practica', '🧭', 'Práctica'], ['examen', '⏱', 'Examen'], ['errores', '📝', 'Errores'], ['lab', '🧪', 'Lab'], ['ajustes', '⚙', 'Ajustes']];
+  const ACTIVO = { panel: 'panel', nivel: 'panel', teoria: 'panel', biblioteca: 'biblioteca', practica: 'practica', repaso: 'practica', reintento: 'errores', examen: 'examen', errores: 'errores', lab: 'lab', ajustes: 'ajustes' };
   let limpiar = null;
 
   function parseHash() {
@@ -42,6 +42,7 @@
           else if (args[0] === 'curso') fn = V.examenCurso;
           else if (args[0] === 'resultado') fn = (hh, a, q) => V.examenResultado(hh, a.slice(1), q);
           else fn = V.examenHub; break;
+        case 'biblioteca': fn = V.biblioteca; break;
         case 'errores': fn = V.errores; break; case 'lab': fn = V.lab; break; case 'ajustes': fn = V.ajustes; break;
         default: location.replace('#/panel'); return;
       }

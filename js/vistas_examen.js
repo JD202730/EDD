@@ -27,7 +27,7 @@
     else {
       const c = h('div', { class: 'card' });
       ex.slice(0, 12).forEach(x => c.appendChild(h('a', { class: 'fila sep', style: { padding: '10px 0', borderBottom: '1px dashed var(--borde)', textDecoration: 'none', color: 'inherit' }, href: '#/examen/resultado/' + x.id },
-        h('div', null, h('strong', { text: U.fmtFecha(x.t) }), h('div', { class: 'peq tenue', text: x.n + ' preguntas · ' + (x.cfg && x.cfg.parcial ? 'parcial simulado' : (x.cfg && x.cfg.acumulativo ? 'acumulativo' : 'niveles ' + (x.cfg ? x.cfg.niveles.join(', ') : ''))) + (x.cfg && x.cfg.tiempo ? ' · con tiempo' : ''), })),
+        h('div', null, h('strong', { text: U.fmtFecha(x.t) }), h('div', { class: 'peq tenue', text: x.n + ' preguntas · ' + (x.cfg && x.cfg.parcial ? 'parcial simulado' : (x.cfg && x.cfg.etiqueta ? x.cfg.etiqueta.replace(/^Examen d(el|e) /, '') : (x.cfg && x.cfg.acumulativo ? 'acumulativo' : 'niveles ' + (x.cfg ? x.cfg.niveles.join(', ') : '')))) + (x.cfg && x.cfg.tiempo ? ' · con tiempo' : ''), })),
         h('div', { class: 'fila' }, h('span', { class: 'chip', text: x.aciertos + '/' + x.n + ' correctas' }), h('strong', { text: fmtNota(x.nota5) + ' / 5.0' })))));
       host.appendChild(c);
     }
@@ -77,6 +77,9 @@
     if (preset === 'rapido') { titulo = 'Examen rápido'; cfg.n = 10; }
     else if (preset === 'acumulativo') { titulo = 'Examen acumulativo'; cfg.acumulativo = true; cfg.n = 20; cfg.tiempo = true; cfg.minutos = 50; cfg.niveles = des.slice(); cfg.dist = { teoria: 30, analisis: 40, implementacion: 30 }; minManual = true; }
     else if (/^nivel-\d$/.test(preset)) { const n = +preset.slice(6); titulo = 'Examen del nivel ' + n; cfg.niveles = [n]; cfg.n = 8; }
+    else if (/^(tema|area)-/.test(preset) && ET.Biblioteca && ET.Biblioteca.preset(preset)) {   // examen centrado en un tema o área de la Biblioteca
+      const p = ET.Biblioteca.preset(preset); titulo = p.titulo; cfg.niveles = p.niveles.slice(); cfg.conceptos = p.conceptos.slice(); cfg.etiqueta = p.titulo; cfg.n = /^area-/.test(preset) ? 12 : 8;
+    }
     if (!cfg.minutos || !minManual) cfg.minutos = Math.max(10, Math.round(cfg.n * 3));
     const sel = {};
     host.appendChild(h('div', { class: 'fila', style: { marginBottom: '10px' } }, h('a', { class: 'btn fantasma peq', href: '#/examen' }, '← Modo examen')));
@@ -93,7 +96,8 @@
       chk.appendChild(h('label', { class: 'chk-niv' + (bloq ? ' bloq' : '') }, inp, h('span', { text: l.icono + ' ' + l.id + '. ' + l.nombre + (bloq ? ' 🔒' : '') })));
     });
     secNiv.appendChild(chk);
-    secNiv.appendChild(h('div', { class: 'peq tenue', text: cfg.acumulativo ? 'El examen acumulativo incluye automáticamente todos los niveles desbloqueados.' : 'Solo se pueden elegir niveles desbloqueados (o todos si activas el desbloqueo libre en Ajustes).' }));
+    secNiv.appendChild(h('div', { class: 'peq tenue', text: cfg.acumulativo ? 'El examen acumulativo incluye automáticamente todos los niveles desbloqueados.' : (cfg.conceptos ? 'Las preguntas se toman de los conceptos de este tema de la Biblioteca (no necesitas tener desbloqueado el nivel).' : 'Solo se pueden elegir niveles desbloqueados (o todos si activas el desbloqueo libre en Ajustes).') }));
+    if (cfg.conceptos) { Object.values(sel).forEach(i => { i.disabled = true; }); secNiv.appendChild(h('div', { class: 'peq', style: { marginTop: '6px' }, text: 'Conceptos evaluados: ' + cfg.conceptos.map(c => (Tm.conceptos[c] || { nombre: c }).nombre).join(' · ') })); }
     card.appendChild(secNiv);
 
     const secN = h('div', { class: 'cfg-sec' }, h('h3', { text: '2. Cantidad y dificultad' }));
@@ -139,7 +143,7 @@
     const iniciar = h('button', { class: 'btn grande', onclick: () => {
       cfg.n = U.clamp(parseInt(nIn.value) || 10, 3, 40); cfg.dificultad = dif.value; cfg.tiempo = cTiempo.checked; cfg.minutos = U.clamp(parseInt(min.value) || 30, 5, 240); cfg.revisar = cRev.checked; cfg.consola = cCons.checked;
       incl.forEach(([k]) => cfg[k] = ch[k].checked);
-      if (!cfg.acumulativo) { cfg.niveles = Object.entries(sel).filter(([k, v]) => v.checked).map(([k]) => +k); if (!cfg.niveles.length) { msg.textContent = 'Elige al menos un nivel.'; return; } }
+      if (!cfg.acumulativo && !cfg.conceptos) { cfg.niveles = Object.entries(sel).filter(([k, v]) => v.checked).map(([k]) => +k); if (!cfg.niveles.length) { msg.textContent = 'Elige al menos un nivel.'; return; } }
       if (U.sum(Object.values(cfg.dist)) === 0) { msg.textContent = 'La distribución no puede ser 0 en todos los tipos.'; return; }
       const items = M.generarExamen(cfg, []);
       const ex = { id: U.uid(), cfg, items, resp: items.map(() => null), marcas: items.map(() => false), resp_ok: items.map(() => false), idx: 0, maxIdx: 0, inicio: Date.now(), fin: cfg.tiempo ? Date.now() + cfg.minutos * 60000 : null };
@@ -299,7 +303,7 @@
     const cE = h('div', { class: 'card espacio' }, h('h2', { text: 'Conceptos para estudiar de nuevo' }));
     if (!flojos.length) cE.appendChild(h('p', { class: 'suave', text: '¡Ningún concepto quedó por debajo del 70 %!' }));
     else {
-      flojos.slice(0, 10).forEach(([c, x]) => { const k = Tm.conceptos[c]; cE.appendChild(h('div', { class: 'fila-tema' }, h('div', null, h('strong', { text: k.nombre }), h('div', { class: 'peq tenue', text: 'Nivel ' + k.nivel + ' · ' + k.f })), Vc.barra(x.pct), h('button', { class: 'mini', onclick: () => Vc.teoriaModal([c]), title: 'Ver teoría', text: '📖' }))); });
+      flojos.slice(0, 10).forEach(([c, x]) => { const k = Tm.conceptos[c]; const bt = ET.Biblioteca ? ET.Biblioteca.temasDeConcepto(c)[0] : null; cE.appendChild(h('div', { class: 'fila-tema' }, h('div', null, h('strong', { text: k.nombre }), h('div', { class: 'peq tenue', text: 'Nivel ' + k.nivel + ' · ' + k.f }), bt ? h('a', { class: 'peq', href: '#/biblioteca/' + bt.id }, '📚 Repasar en la Biblioteca: ' + bt.titulo) : null), Vc.barra(x.pct), h('button', { class: 'mini', onclick: () => Vc.teoriaModal([c]), title: 'Ver teoría', text: '📖' }))); });
       cE.appendChild(h('div', { class: 'acciones' }, h('a', { class: 'btn', href: '#/repaso?foco=' + encodeURIComponent(flojos.slice(0, 5).map(f => f[0]).join(',')) }, '🎯 Practicar estos conceptos')));
     }
     host.appendChild(cE);

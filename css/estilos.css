@@ -280,6 +280,7 @@ input.hueco { width: auto; display: inline-block; padding: 1px 6px; margin: 0 2p
 .taller-instr { padding: 10px 14px; border-radius: 12px; background: var(--acento-bg); }
 .taller-instr .peq { margin-bottom: 2px; }
 .taller-caja { padding: 6px; margin: 0; }
+.taller-lienzo { justify-content: flex-start; } .taller-lienzo > .arbol-svg { margin: 0 auto; flex: none; }   /* árboles anchos: se desplazan sin recortarse a la izquierda */
 .taller-svg { user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
 .taller-svg .nodo { cursor: grab; } .taller-svg .nodo:active { cursor: grabbing; }
 .taller-svg .nodo text { font-size: 16px; }

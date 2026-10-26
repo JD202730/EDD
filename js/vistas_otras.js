@@ -87,15 +87,18 @@
   /* ===================== Laboratorio: taller interactivo (mover nodos) ===================== */
   function labTaller(host) {
     host.appendChild(h('p', { class: 'suave', html: U.mdInline('Resuelve **tú** la operación moviendo los nodos: colocas el nodo nuevo, detectas el nodo desbalanceado, clasificas el desbalance y aplicas cada rotación arrastrando un hijo sobre su padre. En modo estricto, lo que esté mal **no se acepta** y el árbol no cambia.') }));
+    const MAX_OPS = 60, MAX_NODOS = 60;   // sin tope práctico: puedes meter muchos valores (más de 12) y operaciones
     const PRESETS = [
       ['Caso LL', 'avl', '30(20,)', '10'], ['Caso RR', 'avl', '10(,20)', '30'], ['Caso LR', 'avl', '30(10,)', '20'], ['Caso RL', 'avl', '10(,30)', '20'],
       ['Secuencia de clase', 'avl', '', '10, 20, 30, 40, 50, 25'], ['Eliminar con rotación', 'avl', '20(10,30(,40))', '-10'],
-      ['BST: insertar', 'bst', '50(30(20,40),70(60,80))', '45, 65, 10'], ['BST: eliminar', 'bst', '50(30(20,40),70(60,80))', '-30, -50', 'pred']
+      ['BST: insertar', 'bst', '50(30(20,40),70(60,80))', '45, 65, 10'], ['BST: eliminar', 'bst', '50(30(20,40),70(60,80))', '-30, -50', 'pred'],
+      ['AVL con 16 valores', 'avl', '', '10, 20, 30, 40, 50, 25, 60, 70, 80, 65, 5, 3, 1, 90, 85, 95'],
+      ['AVL grande: eliminar', 'avl', '50(30(20(10(5,),25),40(35,45)),70(60(55,65),80(75,90)))', '-5, -10, -20, -25']
     ];
     const selTipo = h('select', { 'aria-label': 'Tipo de árbol' }, h('option', { value: 'avl', text: 'AVL (con rotaciones)' }), h('option', { value: 'bst', text: 'BST (sin balanceo)' }));
     const selConv = h('select', { 'aria-label': 'Reemplazo al eliminar un nodo con dos hijos' }, h('option', { value: 'suc', text: 'Eliminar con dos hijos: sucesor inorden' }), h('option', { value: 'pred', text: 'Eliminar con dos hijos: predecesor inorden' }));
     const inArbol = h('input', { type: 'text', class: 'entrada-nota', placeholder: 'Árbol inicial, p. ej. 30(20,) — vacío = árbol vacío', spellcheck: 'false', autocomplete: 'off', 'aria-label': 'Árbol inicial' });
-    const inOps = h('input', { type: 'text', class: 'entrada-nota', placeholder: 'Operaciones: 25, 10, -30 (el signo − elimina)', spellcheck: 'false', autocomplete: 'off', 'aria-label': 'Operaciones' });
+    const inOps = h('input', { type: 'text', class: 'entrada-nota', placeholder: 'Operaciones: 25, 10, -30 (el signo − elimina); sin límite práctico (hasta 60)', spellcheck: 'false', autocomplete: 'off', 'aria-label': 'Operaciones' });
     const zona = h('div', { style: { marginTop: '14px' } });
     const presets = h('div', { class: 'fila' }, PRESETS.map(p => h('button', { type: 'button', class: 'btn sec peq', onclick: () => { selTipo.value = p[1]; selConv.value = p[4] || (p[1] === 'bst' ? 'pred' : 'suc'); inArbol.value = p[2]; inOps.value = p[3]; comenzar(); } }, p[0])));
     function leerOps(txt) {
@@ -114,10 +117,10 @@
       try {
         const tipo = selTipo.value, conv = selConv.value; let t = Arb.parse(inArbol.value);
         if (t && !Arb.esBST(t)) throw new Error('El árbol inicial no cumple la propiedad de BST.');
-        if (t && Arb.tam(t) > 14) throw new Error('Usa un árbol inicial de hasta 14 nodos.');
+        if (t && Arb.tam(t) > MAX_NODOS) throw new Error('Usa un árbol inicial de hasta ' + MAX_NODOS + ' nodos.');
         let ops = leerOps(inOps.value); const avisos = [];
         if (!ops.length) throw new Error('Escribe al menos una operación.');
-        if (ops.length > 12) throw new Error('Usa hasta 12 operaciones por ejercicio.');
+        if (ops.length > MAX_OPS) throw new Error('Usa hasta ' + MAX_OPS + ' operaciones por ejercicio (son ' + ops.length + ').');
         if (tipo === 'avl' && t && Arb.desbalanceados(t).length) { ops = [{ t: 'reb' }].concat(ops); avisos.push('El árbol inicial no es AVL: primero hay que rebalancearlo (op. «reb»).'); }
         let sim = t; // validación de las operaciones
         for (const o of ops) {
@@ -184,17 +187,81 @@
       arbol = r.arbol; dibujar(); logAdd('Insertar **' + v + '**' + (r.pasos.length ? ' → ' + r.pasos.map(p => 'rot. ' + p.rot + ' en ' + p.sobre).join(' + ') + ' (' + r.caso + ')' : ' → sin rotación') + ' · altura ' + Arb.altura(arbol));
       if (r.pasos.length) msg.innerHTML = U.mdInline('Árbol balanceado: `' + Arb.nota(arbol) + '` (altura ' + Arb.altura(arbol) + ').');
     }
+    /** valor del padre del nodo v en t (null si v es la raíz) */
+    const padreVal = (t, v) => { let p = null, n = t; while (n && String(n.v) !== String(v)) { p = n; n = Arb.lt(v, n.v) ? n.l : n.r; } return n && p ? p.v : null; };
+    /** Eliminación paso a paso: 1) buscar · 2) cuántos hijos · 3) quitar como en un BST · 4) (AVL) subir recalculando factores y rotar */
     async function eliminar(v) {
       const id = ++vivo; U.vaciar(salida);
-      if (!Arb.buscarNodo(arbol, v)) { msg.textContent = 'El valor ' + v + ' no está en el árbol.'; logAdd('Eliminar ' + v + ': no está.'); return; }
-      const nd = Arb.buscarNodo(arbol, v); const hijos = (nd.l ? 1 : 0) + (nd.r ? 1 : 0);
-      if (modo === 'bst') { arbol = Arb.delBST(arbol, v, 'pred'); dibujar(); msg.textContent = 'Eliminado ' + v + (hijos === 2 ? ' (2 hijos: se usó el predecesor inorden)' : hijos === 1 ? ' (1 hijo: lo reemplaza su hijo)' : ' (hoja)') + '.'; logAdd('Eliminar **' + v + '** (' + hijos + ' hijos)'); return; }
-      const r = Arb.delAVL(arbol, v, 'suc'); const bad = Arb.desbalanceados(r.bst); const cl = {}; if (bad.length) cl[String(bad[0].v)] = 'desbalanceado';
-      Arb.dibujar(draw, r.bst, sel({ clases: cl }));
-      msg.innerHTML = U.mdInline('Se eliminó **' + v + '** como en un BST (' + (hijos === 2 ? '2 hijos: se copia el **sucesor inorden**' : hijos === 1 ? '1 hijo' : 'hoja') + '). ' + (bad.length ? 'Nodo desbalanceado: **' + bad[0].v + '**.' : 'No hay nodos desbalanceados.'));
-      await sleep(vel() * 1.6);
-      for (const p of r.pasos) { if (id !== vivo) return; msg.innerHTML = U.mdInline('Rotación **' + p.rot + '** sobre **' + p.sobre + '** (caso ' + p.caso + ', decidido por el factor del hijo).'); await Arb.animarTransicion(draw, p.antes, p.despues, { dur: vel() * 1.3 }); await sleep(vel() * .5); }
-      if (id !== vivo) return; arbol = r.arbol; dibujar(); logAdd('Eliminar **' + v + '**' + (r.pasos.length ? ' → ' + r.pasos.length + ' rotación(es)' : ' → sin rotaciones') + ' · altura ' + Arb.altura(arbol));
+      if (!arbol || !Arb.buscarNodo(arbol, v)) { msg.textContent = 'El valor ' + v + ' no está en el árbol.'; logAdd('Eliminar ' + v + ': no está.'); return; }
+      const avl = modo === 'avl', antes = arbol, activo = () => id === vivo;
+      const dib = (t, cl, conF) => Arb.dibujar(draw, t, { etiquetas: (conF || (mostrarF && avl)) ? 'factor' : null, clases: cl || {} });
+      const dec = (txt, k) => { msg.innerHTML = U.mdInline(txt); return sleep(vel() * (k || 1)); };
+      const nd = Arb.buscarNodo(antes, v), hijos = (nd.l ? 1 : 0) + (nd.r ? 1 : 0);
+      // Paso 1: buscar el nodo
+      const ruta = Arb.camino(antes, v);
+      for (let i = 0; i < ruta.length; i++) {
+        if (!activo()) return;
+        const fin = i === ruta.length - 1, cl = {}; cl[String(ruta[i])] = fin ? 'objetivo' : 'ruta'; dib(antes, cl);
+        await dec('**Paso 1 · Buscar el nodo.** ' + (fin ? '¡Encontré el **' + v + '**!' : 'Comparo ' + v + ' con ' + ruta[i] + ': ' + (v < ruta[i] ? 'menor → izquierda.' : 'mayor → derecha.')), .8);
+      }
+      // Paso 2: ¿cuántos hijos tiene?
+      const sust = hijos === 2 ? (avl ? Arb.minimo(nd.r) : Arb.maximo(nd.l)) : null, nombreSust = avl ? 'sucesor' : 'predecesor';
+      const marca = {}; marca[String(v)] = 'desbalanceado';
+      if (hijos === 0) { dib(antes, marca); await dec('**Paso 2 · ¿Cuántos hijos tiene?** El **' + v + '** es una **hoja** (0 hijos): se quita directamente.', 1.4); }
+      else if (hijos === 1) { const hij = nd.l || nd.r; marca[String(hij.v)] = 'objetivo'; dib(antes, marca); await dec('**Paso 2 · ¿Cuántos hijos tiene?** El **' + v + '** tiene **un hijo** (' + hij.v + '): ese hijo ocupará su lugar.', 1.4); }
+      else {
+        dib(antes, marca);
+        await dec('**Paso 2 · ¿Cuántos hijos tiene?** El **' + v + '** tiene **dos hijos**: no se puede quitar sin más. Su valor se reemplaza por el **' + nombreSust + ' inorden** (' + (avl ? 'el menor del subárbol derecho' : 'el mayor del subárbol izquierdo') + ').', 1.4);
+        const cam = []; let x = avl ? nd.r : nd.l; while (x) { cam.push(x.v); x = avl ? x.l : x.r; }
+        for (let i = 0; i < cam.length; i++) {
+          if (!activo()) return;
+          const fin = i === cam.length - 1, cl = {}; cl[String(v)] = 'desbalanceado'; cam.slice(0, i + 1).forEach((c, j) => { cl[String(c)] = j === i && fin ? 'objetivo' : 'ruta'; }); dib(antes, cl);
+          await dec('**Buscando el ' + nombreSust + '.** ' + (i === 0 ? 'Bajo una vez a la ' + (avl ? 'derecha' : 'izquierda') + ': ' : 'Sigo siempre a la ' + (avl ? 'izquierda' : 'derecha') + ': ') + cam[i] + (fin ? ' → no tiene más hijos de ese lado: **' + cam[i] + ' es el ' + nombreSust + '**.' : '.'), fin ? 1.3 : .8);
+        }
+      }
+      // Paso 3: quitar el nodo como en un BST
+      const sinNodo = Arb.delBST(antes, v, avl ? 'suc' : 'pred');
+      if (!activo()) return;
+      msg.innerHTML = U.mdInline('**Paso 3 · Quitar el nodo como en un BST.** ' + (hijos === 0 ? 'Se quita la hoja ' + v + '.' : hijos === 1 ? 'Su hijo sube a ocupar su lugar.' : 'El valor **' + sust.v + '** (' + nombreSust + ') sube a ocupar el lugar del ' + v + ' y su nodo original se elimina (tenía a lo sumo un hijo).'));
+      if (!sinNodo) { arbol = null; dib(null); msg.textContent = 'El árbol quedó vacío.'; logAdd('Eliminar **' + v + '** → árbol vacío'); return; }
+      await Arb.animarTransicion(draw, antes, sinNodo, { dur: vel() * 1.3 }); await sleep(vel() * .5);
+      if (!activo()) return;
+      if (!avl) { arbol = sinNodo; dib(arbol); await dec('**Listo.** Árbol resultante: `' + Arb.nota(arbol) + '` (altura ' + Arb.altura(arbol) + '). En un BST no hay nada más que reajustar: puede quedar desbalanceado.', 0); logAdd('Eliminar **' + v + '** (' + hijos + ' hijo' + (hijos === 1 ? '' : 's') + (hijos === 2 ? ', predecesor ' + sust.v : '') + ') · altura ' + Arb.altura(arbol)); return; }
+      // Paso 4 (AVL): subir hacia la raíz recalculando altura y factor; rotar donde |factor| ≥ 2
+      const r = Arb.delAVL(antes, v, 'suc');
+      let actual = r.bst, k = 0, nrot = 0;
+      const hondo = hijos === 2 ? (String(padreVal(antes, sust.v)) === String(v) ? sust.v : padreVal(antes, sust.v)) : padreVal(antes, v);
+      const subida = hondo === null ? [] : Arb.camino(actual, hondo).slice().reverse();
+      const clavePaso = p => String(p.nodoDesbalanceado !== undefined ? p.nodoDesbalanceado : p.sobre);
+      dib(actual, {}, true);
+      await dec('**Paso 4 · Reajuste (AVL).** Al quitar un nodo cambian las alturas de sus ancestros. ' + (subida.length ? 'Subo desde el **' + subida[0] + '** hasta la raíz recalculando altura y factor (alt(izq) − alt(der)); si algún factor llega a ±2, hay que rotar.' : 'El nodo quitado era la raíz: no hay ancestros que revisar.'), 1.5);
+      const animarPaso = async (p) => {
+        nrot++;
+        msg.innerHTML = U.mdInline('**Rotación ' + p.rot + '** sobre **' + p.sobre + '**' + (p.parte ? ' (parte ' + p.parte + ' de 2 del caso ' + p.caso + ')' : ' (caso ' + p.caso + ')') + '. El inorden no cambia.');
+        await Arb.animarTransicion(draw, p.antes, p.despues, { dur: vel() * 1.3 }); actual = p.despues; await sleep(vel() * .5);
+      };
+      for (const a of subida) {
+        if (!activo()) return;
+        const nodo = Arb.hallar(actual, a); if (!nodo) continue;
+        const f = Arb.factor(nodo), cl = {};
+        if (Math.abs(f) < 2) {
+          cl[String(a)] = 'ruta'; dib(actual, cl, true);
+          await dec('Nodo **' + a + '**: altura ' + Arb.altura(nodo) + ', factor **' + (f > 0 ? '+' : '') + f + '** → equilibrado ✔. Sigo subiendo.', .9);
+        } else {
+          cl[String(a)] = 'desbalanceado'; dib(actual, cl, true);
+          const hijo = f > 0 ? nodo.l : nodo.r, fh = Arb.factor(hijo), p0 = r.pasos[k];
+          const cond = p0 ? { LL: '≥ 0', LR: '< 0', RR: '≤ 0', RL: '> 0' }[p0.caso] : '';
+          await dec('Nodo **' + a + '**: factor **' + (f > 0 ? '+' : '') + f + '** → ¡desbalanceado! En la eliminación el caso se decide por el **factor del hijo ' + (f > 0 ? 'izquierdo' : 'derecho') + '** (' + hijo.v + ', factor ' + (fh > 0 ? '+' : '') + fh + (cond ? ', ' + cond : '') + ') → caso **' + (p0 ? p0.caso + ' (' + Arb.NOMBRE_CASO[p0.caso] + ')' : '?') + '**' + (p0 ? ': ' + Arb.ROT_CASO[p0.caso] + '.' : '.'), 1.8);
+          while (k < r.pasos.length && clavePaso(r.pasos[k]) === String(a)) { if (!activo()) return; await animarPaso(r.pasos[k++]); }
+          const c2 = {}; if (Arb.hallar(actual, a)) c2[String(a)] = 'ruta'; dib(actual, c2, true);
+          await dec('Rotación hecha: el nodo **' + a + '** queda equilibrado. **Sigo subiendo**: la rotación pudo acortar este subárbol y desbalancear a un ancestro.', 1.2);
+        }
+      }
+      while (k < r.pasos.length) { if (!activo()) return; await animarPaso(r.pasos[k++]); }   // por seguridad: lo que no se haya recorrido arriba
+      if (!activo()) return;
+      arbol = r.arbol; dib(arbol, {}, true);
+      msg.innerHTML = U.mdInline('**Listo.** ' + (nrot ? (nrot === 1 ? 'Se hizo **1 rotación**' : 'Se hicieron **' + nrot + ' rotaciones**') + (nrot > 1 ? ' (a diferencia de la inserción, un borrado puede necesitar varias)' : '') + '. ' : 'Ningún factor llegó a ±2: no hizo falta rotar. ') + 'Árbol: `' + Arb.nota(arbol) + '` (altura ' + Arb.altura(arbol) + ').');
+      logAdd('Eliminar **' + v + '** (' + hijos + ' hijo' + (hijos === 1 ? '' : 's') + (hijos === 2 ? ', sucesor ' + sust.v : '') + ')' + (nrot ? ' → ' + nrot + ' rotación(es)' : ' → sin rotaciones') + ' · altura ' + Arb.altura(arbol));
     }
     async function buscar(v) {
       const id = ++vivo; U.vaciar(salida); const ruta = Arb.camino(arbol, v);
@@ -221,7 +288,7 @@
         h('div', { class: 'fila', style: { marginTop: '8px' } }, h('span', { class: 'peq suave', text: 'Recorridos:' }), btn('Preorden', () => recorrer('pre')), btn('Inorden', () => recorrer('ino')), btn('Postorden', () => recorrer('post')), btn('Por niveles', () => recorrer('niv')))),
       h('div', { class: 'espacio' }, caja), h('div', { class: 'espacio' }, msg), salida);
     host.appendChild(h('div', { class: 'lab-grid' }, panelIzq, h('div', { class: 'card flat' }, h('h3', { text: 'Registro' }), log)));
-    host.appendChild(h('div', { class: 'card espacio' }, h('h3', { text: 'Ideas para probar' }), h('ul', { html: md('- Inserta `10, 20, 30, 40, 50, 25` en AVL: es el ejemplo de clase (termina en `30(20(10,25),40(,50))`).\n- Inserta `1, 2, 3, 4, 5, 6, 7` en BST y luego en AVL y compara las alturas.\n- Elimina la raíz en cada uno y observa qué valor sube (predecesor en BST, sucesor en AVL).\n- Activa los factores y busca el nodo con ±2 antes de que ocurra la rotación.').replace(/^<ul>|<\/ul>$/g, '') })));
+    host.appendChild(h('div', { class: 'card espacio' }, h('h3', { text: 'Ideas para probar' }), h('ul', { html: md('- Inserta `10, 20, 30, 40, 50, 25` en AVL: es el ejemplo de clase (termina en `30(20(10,25),40(,50))`).\n- Inserta `1, 2, 3, 4, 5, 6, 7` en BST y luego en AVL y compara las alturas.\n- Elimina la raíz en cada uno y observa qué valor sube (predecesor en BST, sucesor en AVL). **Al eliminar se muestra el proceso:** buscar, cuántos hijos, sustituto, y en AVL la subida recalculando factores con cada rotación.\n- Carga `1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12` en AVL y elimina `1`, `2`, `3`…: verás que un borrado puede necesitar varias rotaciones.\n- Activa los factores y busca el nodo con ±2 antes de que ocurra la rotación.').replace(/^<ul>|<\/ul>$/g, '') })));
     reiniciar();
     return () => { vivo++; if (anim) anim.parar(); };
   }

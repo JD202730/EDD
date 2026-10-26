@@ -46,7 +46,11 @@ algorítmicos, árboles, recorridos, BST, AVL y rojo-negro**. El contenido sale 
   entregar ves la nota sobre 5,0 y los puntos por pregunta y literal (`0,23 / 0,45`).
 * **Justificaciones escritas**: se evalúan por criterios visibles (palabras clave); tú puedes ajustar cada criterio con las casillas
   «lo expliqué» (autoevaluación). No hay IA ni servicios externos: todo funciona sin internet y sin costo.
-* **Laboratorio**: visualizador BST/AVL con animación de inserciones, eliminaciones, rotaciones y recorridos; depurador
+* **Laboratorio**: visualizador BST/AVL con animación de inserciones, eliminaciones, rotaciones y recorridos (al **eliminar** muestra
+  el proceso: buscar el nodo, cuántos hijos tiene, el sucesor/predecesor que lo reemplaza y, en AVL, la subida hacia la raíz
+  recalculando alturas y factores con cada rotación, que pueden ser varias); el **Taller interactivo** admite ejercicios grandes
+  (hasta 60 operaciones y un árbol inicial de hasta 60 nodos; los árboles de más de 12 nodos se dibujan a tamaño fijo y la caja se
+  desplaza); depurador
   *Código ↔ Árbol*; visor de la pila de recursión; consola de Python.
 
 ## Cómo ejecutarlo

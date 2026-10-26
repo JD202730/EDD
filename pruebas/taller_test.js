@@ -89,6 +89,20 @@
       await w._t.autoResolver();
       if (!w._t.estado().fin || !ET.Arb.esAVL(w._t.estado().arbol)) throw new Error('reb: ' + ET.Arb.nota(w._t.estado().arbol));
     } catch (e) { fallos.push({ id: 'reb', seed: 0, msg: String(e && e.message || e) }); }
+    // ejercicios grandes (más de 12 valores): 30 inserciones y 8 eliminaciones, AVL y BST, deben terminar y coincidir con el motor
+    for (const [tipo, conv] of [['avl', 'suc'], ['bst', 'pred']]) {
+      try {
+        host.innerHTML = '';
+        const ins = [...new Set(Array.from({ length: 30 }, (_, i) => ((i * 37) % 97) + 3))].map(v => ({ t: 'ins', v }));
+        const ops = ins.concat(ins.slice(2, 10).map(o => ({ t: 'del', v: o.v })));
+        const w = ET.Taller.montar(host, { tipo, conv, arbol: null, ops, estricto: true, sinAnimar: true });
+        await w._t.autoResolver();
+        let sim = null; ops.forEach(o => { sim = o.t === 'ins' ? (tipo === 'avl' ? ET.Arb.insAVL(sim, o.v).arbol : ET.Arb.insBST(sim, o.v)) : (tipo === 'avl' ? ET.Arb.delAVL(sim, o.v, conv).arbol : ET.Arb.delBST(sim, o.v, conv)); });
+        const S = w._t.estado();
+        if (!S.fin || !ET.Arb.igual(S.arbol, sim)) throw new Error('ejercicio grande ' + tipo + ': el árbol final no coincide con el motor');
+        if (tipo === 'avl' && !ET.Arb.esAVL(S.arbol)) throw new Error('ejercicio grande avl: no es AVL');
+      } catch (e) { fallos.push({ id: 'grande-' + tipo, seed: 0, msg: String(e && e.message || e) }); }
+    }
     host.remove();
     return { plantillas: T.length, instancias: total, rechazos: rech, penalizados: pen, fases: fas, fallos };
   }

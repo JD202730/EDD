@@ -11,6 +11,8 @@
   const MARGEN_X = 46, OFFSET_Y = 74;
   const NOMBRES = { LL: 'Izq-Izq (LL)', RR: 'Der-Der (RR)', LR: 'Izq-Der (LR)', RL: 'Der-Izq (RL)' };
   const lado = l => l === 'l' ? 'izquierdo' : 'derecho';
+  /** árboles de más de 12 nodos: tamaño fijo (80 %) en vez de encogerlos hasta que los nodos no se puedan arrastrar; la caja se desplaza */
+  const escalaPara = n => n > 12 ? 0.8 : null;
 
   /* ===================== plan de una operación ===================== */
   function agrupar(pasos) {
@@ -101,7 +103,7 @@
       if (S.revela && S.revela.nodo) clases[S.revela.nodo] = (clases[S.revela.nodo] ? clases[S.revela.nodo] + ' ' : '') + 'pista-nodo';
       const bandeja = !!(f && f.id === 'colocar' && !S.fin && !S.pendiente);
       const papelera = !!(f && f.id === 'quitar' && S.plan.hijos === 0 && !S.fin && !S.pendiente);
-      S.dopts = { geom: GEO, margenX: MARGEN_X, offsetY: (bandeja || papelera) ? OFFSET_Y : 0, extraNiveles: bandeja ? 1 : 0, clases, etiquetas: (cfg.tipo === 'avl' && (S.factores || S.fin || S.pendiente)) ? 'factor' : null, maxAncho: 900 };
+      S.dopts = { geom: GEO, margenX: MARGEN_X, offsetY: (bandeja || papelera) ? OFFSET_Y : 0, extraNiveles: bandeja ? 1 : 0, clases, etiquetas: (cfg.tipo === 'avl' && (S.factores || S.fin || S.pendiente)) ? 'factor' : null, maxAncho: 900, escala: escalaPara(Arb.tam(S.arbol)) };
       const ctrl = Arb.dibujar(lienzo, S.arbol, S.dopts);
       S.ctrl = ctrl; if (!ctrl.svg) return;
       const svg = ctrl.svg; svg.classList.add('taller-svg');
@@ -301,7 +303,7 @@
     }
     const animar = async (A, B) => {
       S.anim = true;
-      try { await Arb.animarTransicion(lienzo, A, B, { geom: GEO, margenX: MARGEN_X, offsetY: S.dopts ? S.dopts.offsetY : 0, extraNiveles: S.dopts ? S.dopts.extraNiveles : 0, maxAncho: 900, dur: 750, espera: 60, sinAnimar: !!cfg.sinAnimar }); }
+      try { await Arb.animarTransicion(lienzo, A, B, { geom: GEO, margenX: MARGEN_X, offsetY: S.dopts ? S.dopts.offsetY : 0, extraNiveles: S.dopts ? S.dopts.extraNiveles : 0, maxAncho: 900, escala: escalaPara(Math.max(Arb.tam(A), Arb.tam(B))), dur: 750, espera: 60, sinAnimar: !!cfg.sinAnimar }); }
       finally { S.anim = false; }
     };
     async function aceptar(f, acc) {

@@ -314,6 +314,7 @@
     svg.style.width = Math.min(W, opts.maxAncho || 760) + 'px';
     svg.style.maxWidth = '100%';
     if (opts.sinReducir) { svg.style.width = W + 'px'; svg.style.maxWidth = 'none'; }   // árboles grandes: tamaño real, con desplazamiento
+    else if (opts.escala) { svg.style.width = Math.round(W * opts.escala) + 'px'; svg.style.maxWidth = 'none'; }   // escala fija (p. ej. 0,8): la caja se desplaza si no cabe
     const gEdges = U.svgEl('g', { class: 'aristas' }); const gNodes = U.svgEl('g', { class: 'nodos' });
     svg.appendChild(gEdges); svg.appendChild(gNodes);
     const refs = new Map();
@@ -380,6 +381,8 @@
     const { W, H, X, Y } = medidas(g, ancho, prof, opts);
     const svg = U.svgEl('svg', { viewBox: '0 0 ' + W + ' ' + H, class: 'arbol-svg' });
     svg.style.width = Math.min(W, opts.maxAncho || 760) + 'px'; svg.style.maxWidth = '100%';
+    if (opts.sinReducir) { svg.style.width = W + 'px'; svg.style.maxWidth = 'none'; }
+    else if (opts.escala) { svg.style.width = Math.round(W * opts.escala) + 'px'; svg.style.maxWidth = 'none'; }
     host.appendChild(svg);
     const keys = new Set([...LA.pos.keys(), ...LB.pos.keys()]);
     const gE = U.svgEl('g'); const gN = U.svgEl('g'); svg.appendChild(gE); svg.appendChild(gN);

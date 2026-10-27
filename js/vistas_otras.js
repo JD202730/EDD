@@ -66,7 +66,10 @@
   V.lab = function (host, args, query) {
     const tab = args[0] || 'arboles';
     host.appendChild(h('h1', { text: 'Laboratorio' }));
-    host.appendChild(h('div', { class: 'tabs' }, [['arboles', '🌳 Árboles BST/AVL'], ['codigo', '💻 Código ↔ Árbol'], ['taller', '✋ Taller interactivo'], ['listas', '🔗 Listas enlazadas'], ['pilas', '📚 Pilas y colas'], ['arreglos', '▦ Arreglos y técnicas'], ['heap', '⛰ Heaps'], ['rn', '● Rojo-negro'], ['memoria', '🧠 Memoria'], ['recursion', '↻ Pila de recursión'], ['consola', '⌨ Consola Python']].map(([k, t]) => h('a', { class: 'tab' + (k === tab ? ' act' : ''), href: '#/lab/' + k, text: t }))));
+    const tabsLab = h('div', { class: 'tabs tabs-scroll' }, [['arboles', '🌳 Árboles BST/AVL'], ['codigo', '💻 Código ↔ Árbol'], ['taller', '✋ Taller interactivo'], ['listas', '🔗 Listas enlazadas'], ['pilas', '📚 Pilas y colas'], ['arreglos', '▦ Arreglos y técnicas'], ['heap', '⛰ Heaps'], ['rn', '● Rojo-negro'], ['memoria', '🧠 Memoria'], ['recursion', '↻ Pila de recursión'], ['consola', '⌨ Consola Python']].map(([k, t]) => h('a', { class: 'tab' + (k === tab ? ' act' : ''), href: '#/lab/' + k, text: t })));
+    host.appendChild(tabsLab);
+    const tabAct = tabsLab.querySelector('.act');   // en el celular las pestañas se desplazan: deja visible la activa
+    if (tabAct && tabsLab.scrollWidth > tabsLab.clientWidth) tabsLab.scrollLeft = tabAct.getBoundingClientRect().left - tabsLab.getBoundingClientRect().left + tabsLab.scrollLeft - (tabsLab.clientWidth - tabAct.offsetWidth) / 2;
     if (ET.LabEstructuras && ET.LabEstructuras[tab]) return ET.LabEstructuras[tab](host, query || {});
     if (tab === 'codigo') return labCodigo(host, query || {});
     if (tab === 'recursion') return labRecursion(host);

@@ -18,7 +18,7 @@
         h('div', null, h('a', { class: 'btn fantasma peq', href: cfg.volver || (nivel ? '#/nivel/' + nivel : '#/panel') }, '← Salir'), h('span', { class: 'chip acento', style: { marginLeft: '8px' }, text: '🧭 Práctica guiada' })),
         h('div', { class: 'peq suave', text: 'En esta sesión: ' + S.sesionOk + ' / ' + S.sesionN + ' resueltas' + (S.sesionN ? ' sin ver la solución' : '') }));
       cab.appendChild(fila);
-      const izq = h('div', null, h('strong', { text: titulo }), h('div', { class: 'peq tenue', text: sub }));
+      const izq = h('div', null, h('strong', { role: 'heading', 'aria-level': '1', text: titulo }), h('div', { class: 'peq tenue', text: sub }));
       let der = null;
       if (nivel) {
         const d = M.dominio(nivel, etapa);

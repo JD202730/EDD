@@ -26,13 +26,14 @@
     const hero = h('section', { class: 'card hero' },
       h('div', { class: 'fila sep' },
         h('div', { style: { maxWidth: '620px' } }, h('h1', { text: 'Estructuras de Datos: entrena, mide y domina' }),
-          h('p', { text: 'Recursión, Big O, paradigmas, árboles, BST, AVL, rojo-negro, heaps, listas, pilas, colas y arreglos, con ejercicios que se corrigen de verdad y animaciones paso a paso en el Laboratorio.' })),
+          h('p', { class: 'hero-desc', text: 'Recursión, Big O, paradigmas, árboles, BST, AVL, rojo-negro, heaps, listas, pilas, colas y arreglos, con ejercicios que se corrigen de verdad y animaciones paso a paso en el Laboratorio.' })),
         h('div', { class: 'fila' }, Vc.anillo(prog, '#fff'))));
-    const statsRow = h('div', { class: 'grid g4 espacio', style: { position: 'relative', zIndex: 1 } },
-      [['Progreso global', Math.round(prog * 100) + ' %'], ['Respuestas correctas', pct(st.pctCorrectas)], ['Nivel ' + nj.nivel + ' · XP', st.xp], ['Racha (días)', st.racha]].map(([t, v]) => h('div', { class: 'stat' }, h('b', { text: String(v) }), h('span', { style: { color: 'rgba(255,255,255,.85)' }, text: t }))));
+    const statsRow = h('div', { class: 'grid g4 espacio hero-stats', style: { position: 'relative', zIndex: 1 } },
+      [['Progreso global', Math.round(prog * 100) + ' %'], ['Respuestas correctas', pct(st.pctCorrectas)], ['Nivel ' + nj.nivel + ' · XP', st.xp], ['Racha (días)', st.racha]].map(([t, v]) => h('div', { class: 'stat' }, h('b', { text: String(v) }), h('span', { style: { color: 'rgba(255,255,255,.95)' }, text: t }))));
     hero.appendChild(statsRow);
-    const xpBar = h('div', { style: { position: 'relative', zIndex: 1, marginTop: '10px' } }, Vc.barra(Math.min(1, (st.xp - nj.ant) / Math.max(1, nj.sig - nj.ant))), h('div', { class: 'peq', style: { marginTop: '4px', color: 'rgba(255,255,255,.85)' }, text: (nj.sig - st.xp) + ' XP para el nivel ' + (nj.nivel + 1) }));
+    const xpBar = h('div', { style: { position: 'relative', zIndex: 1, marginTop: '10px' } }, Vc.barra(Math.min(1, (st.xp - nj.ant) / Math.max(1, nj.sig - nj.ant))), h('div', { class: 'peq', style: { marginTop: '4px', color: 'rgba(255,255,255,.95)' }, text: (nj.sig - st.xp) + ' XP para el nivel ' + (nj.nivel + 1) }));
     hero.appendChild(xpBar);
+    hero.appendChild(h('div', { class: 'hero-acc' }, h('a', { class: 'btn hero-cta', href: primera ? primera.ruta : '#/practica/1/A', title: primera ? primera.titulo : 'Nivel 1 · Etapa A' }, '🧭 ' + (primera ? 'Continuar la práctica' : 'Empezar a practicar'))));
     host.appendChild(hero);
 
     // biblioteca de estudio

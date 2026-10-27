@@ -46,6 +46,12 @@
       const d = h('div', { class: 'arbol-draw' }); caja.appendChild(d); host.appendChild(caja);
       ET.Arb.dibujar(d, a.arbol, Object.assign({ compacto: true }, a.opts || {}));
     });
+    if (q.figura && ET.Escena) {   // figura de una estructura (lista, pila, heap…) dibujada con el motor de escenas: {titulo, items, W, H}
+      const caja = h('div', { class: 'arbol-caja fig-escena' });
+      if (q.figura.titulo) caja.appendChild(h('div', { class: 'cod-titulo', text: q.figura.titulo }));
+      host.appendChild(caja);
+      const esc = new ET.Escena(h('div'), { W: q.figura.W, H: q.figura.H, etiqueta: q.figura.titulo || 'Figura' }); caja.appendChild(esc.host); esc.aplicar(q.figura.items, { dur: 0 });
+    }
     if (q.pregunta) host.appendChild(h('div', { class: 'pregunta', html: md(q.pregunta) }));
   }
   Tipos.cabecera = cabecera;

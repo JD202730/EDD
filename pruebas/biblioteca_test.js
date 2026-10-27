@@ -13,7 +13,7 @@
 
     /* ---- 1. estructura ---- */
     check(B.problemas.length === 0, 'problemas de registro: ' + B.problemas.join(' | '));
-    check(B.areas.length === 9, 'debe haber 9 áreas (hay ' + B.areas.length + ')');
+    check(B.areas.length === 15, 'debe haber 15 áreas (hay ' + B.areas.length + ')');
     B.areas.forEach(a => check(B.temasDeArea(a.id).length > 0, 'área sin temas: ' + a.id));
     const ids = new Set();
     B.temas.forEach(t => {
@@ -135,6 +135,41 @@
       check(!!B.temasDeEjemplo(e.id).length, 'ejemplo ' + e.id + ' no está enlazado desde ningún tema de la Biblioteca');
     });
 
+    /* ---- 10. quiz a la medida: reparto por modalidades, preguntas válidas y pantalla de configuración ---- */
+    let quizzes = 0;
+    const mezclas = [{ teoria: 35, practica: 40, interaccion: 25 }, { teoria: 100, practica: 0, interaccion: 0 }, { teoria: 0, practica: 100, interaccion: 0 }, { teoria: 0, practica: 0, interaccion: 100 }];
+    B.areas.forEach(a => {
+      const cs = B.conceptosDeArea(a.id); if (!cs.length) return;
+      mezclas.forEach(mz => {
+        try {
+          const items = M.generarQuiz({ conceptos: cs, n: 9, dificultad: 'mixta', mezcla: mz }, []);
+          check(items.length === 9, 'quiz ' + a.id + ': no genera 9 preguntas (' + items.length + ')');
+          const cl = { teoria: 0, practica: 0, interaccion: 0 };
+          items.forEach(it => { const tp = Banco.porId[it.tplId]; check(!!tp && !tp.soloPractica, 'quiz: plantilla inválida ' + it.tplId); const q = Banco.instanciar(it.tplId, it.seed, it.opts); check(!!q.enunciado || q.tipo === 'mixta', 'quiz: pregunta sin enunciado ' + it.tplId); cl[M.claseQuiz(tp)]++; });
+          const k = Object.keys(mz).find(x => mz[x] === 100);   // si el área tiene plantillas de esa modalidad, todas las preguntas deben ser de ella
+          if (k && Banco.filtrar({ conceptos: cs }).some(t => !t.soloPractica && M.claseQuiz(t) === k)) check(cl[k] === 9, 'quiz ' + a.id + ' (' + k + ' 100 %): salió ' + JSON.stringify(cl));
+          quizzes++;
+        } catch (e) { check(false, 'quiz ' + a.id + ' lanza: ' + e.message); }
+      });
+    });
+    try {
+      const host = document.createElement('div'); ET.Vistas.examenConfig(host, ['quiz'], { areas: 'hp,pc' });
+      check(host.querySelectorAll('.quiz-tema').length >= 60, 'la pantalla del quiz debería listar los temas de la Biblioteca (' + host.querySelectorAll('.quiz-tema').length + ')');
+      check(host.querySelectorAll('.quiz-tema input:checked').length >= B.temasDeArea('hp').length + B.temasDeArea('pc').length, 'el quiz no preselecciona los temas pedidos en la URL');
+    } catch (e) { check(false, 'la pantalla del quiz lanza: ' + e.message); }
+
+    /* ---- 11. el simulador rojo-negro (animaciones y preguntas) produce el mismo árbol que la clase ArbolRN de la Biblioteca ---- */
+    const preRN = p => !p ? [] : [p.v + (p.c === 'n' ? 'N' : 'R')].concat(preRN(p.l), preRN(p.r));
+    const rr = new U.RNG(2468); let casosRN = 0;
+    for (let t = 0; t < 40; t++) {
+      const n = rr.int(3, 14), vals = rr.distinct(n, 1, 90), dels = rr.sample(vals, rr.int(0, Math.min(5, n - 1)));
+      let m = ET.Sim.rn.desde(vals); dels.forEach(v => { m = ET.Sim.rn.eliminar(m, v).modelo; });
+      const code = B.codigo.RN + '\narbol = ArbolRN()\nfor v in ' + JSON.stringify(vals) + ':\n    arbol.insertar(v)\nfor v in ' + JSON.stringify(dels) + ':\n    arbol.eliminar(v)\nres = []\ndef pre(x):\n    if x is arbol.nil:\n        return\n    res.append(str(x.v) + ("N" if x.color == NEGRO else "R"))\n    pre(x.izq)\n    pre(x.der)\npre(arbol.raiz)\nprint(" ".join(res))\n';
+      const s = Py.salida(code).trim(); casosRN++;
+      check(s === preRN(m.raiz).join(' '), 'rojo-negro: el simulador difiere de ArbolRN con insertar ' + JSON.stringify(vals) + ' y eliminar ' + JSON.stringify(dels));
+    }
+    log('Simulador rojo-negro frente a ArbolRN: ' + casosRN + ' secuencias');
+    log('Quizzes generados: ' + quizzes);
     log('Cobertura de diapositivas: ' + nClaves + ' frases verificadas en ' + (window.COBERTURA_PDF || []).length + ' bloques.');
     log('Temas: ' + B.temas.length + ' | fórmulas: ' + B.formulas.length + ' | tablas: ' + B.tablas.length + ' | bloques de código: ' + nCod + ' (ejecutados ' + codigos.length + ') | páginas renderizadas: ' + paginas + ' | exámenes por tema: ' + conEj + ' | servidor: ' + w);
     log('Comprobaciones: ' + (ok + fallos) + ' | fallos: ' + fallos + ' | ' + Math.round(performance.now() - t0) + ' ms');

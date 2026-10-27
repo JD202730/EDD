@@ -85,8 +85,16 @@
     const mod = Tipos.mod(q);
     const n = h('div', { class: 'panel' }, h('h4', { text: 'Respuesta de referencia' }), h('div', { html: mod.solucionHtml(q) }));
     if (q.explicacion) n.appendChild(h('div', { class: 'espacio' }, h('h4', { text: 'Explicación' }), h('div', { html: md(q.explicacion) })));
+    if (q.sim) n.appendChild(Vc.animacionSim(q.sim));
     Tipos.hidratar(n);
     return n;
+  };
+  /** animación paso a paso de una estructura como parte de la explicación: sim = {frames, codigo, tituloCodigo, titulo} */
+  Vc.animacionSim = function (sim) {
+    const det = h('details', { class: 'bib-inter', open: null }, h('summary', null, h('span', { text: '▶ Ver la animación paso a paso: ' }), h('strong', { text: sim.titulo || 'cómo funciona' })));
+    const c = h('div', { class: 'bib-inter-c' }); det.appendChild(c); let rep = null;
+    det.addEventListener('toggle', () => { if (!det.open || rep) return; rep = ET.Reproductor.crear(c, { W: sim.frames[0].W, H: sim.frames[0].H, codigo: sim.codigo || undefined, tituloCodigo: sim.tituloCodigo }); rep.cargar(sim.frames, { auto: false, primero: 0 }); });
+    return det;
   };
 
   /* ---------- animaciones ---------- */

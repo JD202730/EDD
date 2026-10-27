@@ -26,9 +26,9 @@
   }
   const sig = q => JSON.stringify((q.opciones || []).map(o => o.t)) + (q.criterios ? 'c' : '') + (q.items ? JSON.stringify(q.items) : '') + (q.enunciado || '') + '|' + (q.codigoVista || '') + '|' + (q.afirmacion || '') + '|' + (q.arbol ? ET.Arb.nota(q.arbol) : '') + '|' + (q.starter || '') + '|' + (q.plantilla || '') + (q.taller ? '|' + ET.Arb.nota(q.taller.arbol) + JSON.stringify(q.taller.ops) : '');
 
-  async function pruebaBanco(nSemillas) {
+  async function pruebaBanco(nSemillas, filtro) {
     nSemillas = nSemillas || 12;
-    const T = ET.Banco.plantillas; const fallos = [], variedad = {}, tiempos = {}; const exportar = [];
+    const T = ET.Banco.plantillas.filter(t => !filtro || filtro.test(t.id)); const fallos = [], variedad = {}, tiempos = {}; const exportar = [];
     const cats = {}, fmts = {}, tipos = {}; let nInst = 0;
     const host = document.createElement('div'); document.body.appendChild(host); host.style.display = 'none';
     for (const t of T) {
@@ -91,8 +91,7 @@
     }
     host.remove();
     const res = { plantillas: T.length, instancias: nInst, fallos, variedad, tiempos, cats, fmts, tipos };
-    await post('banco_exportar', exportar);
-    await post('banco_resultado', res);
+    if (!filtro) { await post('banco_exportar', exportar); await post('banco_resultado', res); }
     return res;
   }
   window.pruebaBanco = pruebaBanco;

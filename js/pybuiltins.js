@@ -324,6 +324,59 @@
     const defaultdict = fn('defaultdict', ([f]) => { const d = new PyDict(); d.dflt = f === undefined || f === null ? null : f; return d; });
     const counter = fn('Counter', ([x]) => { const d = new PyDict(); d.dflt = it.builtins.get('int'); if (x !== undefined) for (const v of it.iterOf(x)) { const k = it.hk(v); const kv = d.m.get(k); if (kv) kv[1]++; else d.m.set(k, [v, 1]); } return d; });
     mk('collections', { deque: dequeCls, defaultdict, Counter: counter });
+    /* heapq: mismo algoritmo que heapq.py de CPython (_siftdown/_siftup), de modo que la disposición del arreglo coincide con la real */
+    const lt = (a, b) => it.cmp(a, b, '<') < 0;
+    const heapArg = h => { if (!Array.isArray(h)) throw it.mkExc('TypeError', 'heap argument must be a list'); return h; };
+    const siftdown = (h, start, pos) => {
+      const nuevo = h[pos];
+      while (pos > start) { const pp = (pos - 1) >> 1, padre = h[pp]; if (lt(nuevo, padre)) { h[pos] = padre; pos = pp; continue; } break; }
+      h[pos] = nuevo;
+    };
+    const siftup = (h, pos) => {
+      const fin = h.length, start = pos, nuevo = h[pos]; let hijo = 2 * pos + 1;
+      while (hijo < fin) { const der = hijo + 1; if (der < fin && !lt(h[hijo], h[der])) hijo = der; h[pos] = h[hijo]; pos = hijo; hijo = 2 * pos + 1; }
+      h[pos] = nuevo; siftdown(h, start, pos);
+    };
+    const logn = n => Math.ceil(Math.log2(Math.max(2, n + 1)));
+    mk('heapq', {
+      heappush: fn('heappush', ([h, x]) => { heapArg(h); it.costo(logn(h.length)); h.push(x); siftdown(h, 0, h.length - 1); return null; }),
+      heappop: fn('heappop', ([h]) => {
+        heapArg(h); if (!h.length) throw it.mkExc('IndexError', 'index out of range');
+        it.costo(logn(h.length)); const ultimo = h.pop();
+        if (h.length) { const sale = h[0]; h[0] = ultimo; siftup(h, 0); return sale; }
+        return ultimo;
+      }),
+      heapify: fn('heapify', ([h]) => { heapArg(h); it.costo(h.length); for (let i = (h.length >> 1) - 1; i >= 0; i--) siftup(h, i); return null; }),
+      heappushpop: fn('heappushpop', ([h, x]) => { heapArg(h); it.costo(logn(h.length)); if (h.length && lt(h[0], x)) { const sale = h[0]; h[0] = x; siftup(h, 0); return sale; } return x; }),
+      heapreplace: fn('heapreplace', ([h, x]) => { heapArg(h); if (!h.length) throw it.mkExc('IndexError', 'index out of range'); it.costo(logn(h.length)); const sale = h[0]; h[0] = x; siftup(h, 0); return sale; }),
+      nsmallest: fn('nsmallest', (args, kw) => it.sortArr(it.toList(args[1]), kw && kw.key, false).slice(0, Math.max(0, toNum(args[0])))),
+      nlargest: fn('nlargest', (args, kw) => it.sortArr(it.toList(args[1]), kw && kw.key, true).slice(0, Math.max(0, toNum(args[0]))))
+    });
+    /* copy: copia superficial y profunda (los objetos copiados se registran como nuevos para el depurador) */
+    const registra = o => { if (it.onNew) it.onNew(o); return o; };
+    const superficial = x => {
+      if (Array.isArray(x)) return x.slice();
+      if (x instanceof PyDict) { const n = new PyDict(); for (const [k, kv] of x.m) n.m.set(k, [kv[0], kv[1]]); n.dflt = x.dflt; return n; }
+      if (x instanceof PySet) { const n = new PySet(); for (const [k, v] of x.m) n.m.set(k, v); return n; }
+      if (x instanceof PyDeque) return new PyDeque(x.a.slice());
+      if (x instanceof PyObj) { const n = registra(new PyObj(x.cls)); x.attrs.forEach((v, k) => { n.attrs.set(k, v); if (it.onSet) it.onSet(n, k, v); }); return n; }
+      return x;
+    };
+    const profunda = (x, memo) => {
+      if (x === null || typeof x !== 'object') return x;
+      if (memo.has(x)) return memo.get(x);
+      if (Array.isArray(x)) { const n = []; memo.set(x, n); for (const y of x) n.push(profunda(y, memo)); return n; }
+      if (x instanceof PyTuple) { const n = new PyTuple([]); memo.set(x, n); n.a = x.a.map(y => profunda(y, memo)); return n; }
+      if (x instanceof PyDict) { const n = new PyDict(); memo.set(x, n); n.dflt = x.dflt; for (const [k, kv] of x.m) n.m.set(k, [profunda(kv[0], memo), profunda(kv[1], memo)]); return n; }
+      if (x instanceof PySet) { const n = new PySet(); memo.set(x, n); for (const [k, v] of x.m) n.m.set(k, profunda(v, memo)); return n; }
+      if (x instanceof PyDeque) { const n = new PyDeque([]); memo.set(x, n); n.a = x.a.map(y => profunda(y, memo)); return n; }
+      if (x instanceof PyObj) { const n = registra(new PyObj(x.cls)); memo.set(x, n); x.attrs.forEach((v, k) => { const c = profunda(v, memo); n.attrs.set(k, c); if (it.onSet) it.onSet(n, k, c); }); return n; }
+      return x;
+    };
+    mk('copy', { copy: fn('copy', ([x]) => { if (Array.isArray(x)) it.costo(x.length); return superficial(x); }), deepcopy: fn('deepcopy', ([x]) => profunda(x, new Map())) });
+    /* abc: ABC y abstractmethod (no se puede instanciar una clase con métodos abstractos sin implementar) */
+    const abcCls = new PyClass('ABC', [it.builtins.get('object')]); it._ABC = abcCls;
+    mk('abc', { ABC: abcCls, abstractmethod: fn('abstractmethod', ([f]) => { if (f instanceof PyFunc) f.abstract = true; return f; }) });
     mk('time', { perf_counter: fn('perf_counter', () => mkF((typeof performance !== 'undefined' ? performance.now() : Date.now()) / 1000)), time: fn('time', () => mkF(Date.now() / 1000)), sleep: fn('sleep', () => null) });
     const rnd = () => { it.seed = (Math.imul(it.seed, 1664525) + 1013904223) >>> 0; return it.seed / 4294967296; };
     mk('random', {

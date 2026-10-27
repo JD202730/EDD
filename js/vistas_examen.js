@@ -17,10 +17,11 @@
     }
     const des = M.nivelesDesbloqueados();
     host.appendChild(h('a', { class: 'modo parcial-destacado', href: '#/examen/config/parcial', style: { display: 'block', marginBottom: '16px' } }, h('h3', null, h('span', { class: 'ic', text: '📝' }), 'Parcial simulado (modelo del profe)'), h('p', { text: '5 preguntas de 1,0 punto como el parcial del curso: verdadero/falso con justificación, tabla de complejidades, complejidad con variable, caso y regla, algoritmo en cuatro literales y programación con casos borde. 120 minutos, sin pistas y con puntaje parcial por literal.' })));
+    host.appendChild(h('a', { class: 'modo parcial-destacado', href: '#/examen/config/quiz', style: { display: 'block', marginBottom: '16px' } }, h('h3', null, h('span', { class: 'ic', text: '🎯' }), 'Quiz a mi medida'), h('p', { text: 'Tú eliges los temas que quieres que te evalúe (por área o uno por uno) y cuánto de cada modalidad: teoría, práctica (código, trazas, tablas) e interacción (clasificar, ordenar pasos, preguntas con figura y animación).' })));
     host.appendChild(h('div', { class: 'grid g3' },
       h('a', { class: 'modo', href: '#/examen/config/rapido' }, h('h3', null, h('span', { class: 'ic', text: '⚡' }), 'Examen rápido'), h('p', { text: '10 preguntas variadas de los niveles desbloqueados, sin tiempo. Ideal para medirte hoy.' })),
       h('a', { class: 'modo', href: '#/examen/config/simulacro' }, h('h3', null, h('span', { class: 'ic', text: '🎛' }), 'Simulacro configurable'), h('p', { text: 'Elige temas, cantidad, dificultad, duración y la proporción entre teoría, análisis e implementación.' })),
-      h('a', { class: 'modo', href: '#/examen/config/acumulativo' }, h('h3', null, h('span', { class: 'ic', text: '🎓' }), 'Examen acumulativo'), h('p', { text: 'Mezcla todos los niveles desbloqueados (' + des.length + ' de 8): una evaluación final de la asignatura.' }))));
+      h('a', { class: 'modo', href: '#/examen/config/acumulativo' }, h('h3', null, h('span', { class: 'ic', text: '🎓' }), 'Examen acumulativo'), h('p', { text: 'Mezcla todos los niveles desbloqueados (' + des.length + ' de ' + Tm.niveles.length + '): una evaluación final de la asignatura.' }))));
     const ex = M.examenes();
     host.appendChild(h('h2', { class: 'espacio', text: 'Historial de exámenes' }));
     if (!ex.length) host.appendChild(h('div', { class: 'card' }, Vc.vacio('🗒', 'Aún no has presentado exámenes', 'Tu historial y el informe por tema aparecerán aquí.')));
@@ -69,8 +70,125 @@
     host.appendChild(card);
   }
 
-  V.examenConfig = function (host, args) {
+  /** Quiz a la medida: el usuario marca temas de la Biblioteca (por área o uno a uno) y la mezcla teoría / práctica / interacción */
+  function configQuiz(host, query) {
+    const B = ET.Biblioteca, CLAVE = 'ed_quiz_cfg';
+    const guardado = U.Store.get(CLAVE, null) || {};
+    const temas = B.ordenados(), sel = new Set(), chkT = {}, chkA = {}, cont = {}, filas = {}, bloques = {};
+    const disp = {}; temas.forEach(t => { disp[t.id] = t.conceptos.length ? Banco.filtrar({ conceptos: t.conceptos }).filter(x => !x.soloPractica).length : 0; });
+    const pedidos = (query.temas ? query.temas.split(',') : []).filter(id => B.porId[id]);
+    (query.areas ? query.areas.split(',') : []).forEach(a => B.temasDeArea(a).forEach(t => pedidos.push(t.id)));
+    (pedidos.length ? pedidos : (guardado.temas || [])).forEach(id => { if (B.porId[id] && disp[id] > 0) sel.add(id); });
+    const conceptosSel = () => Array.from(new Set(temas.filter(t => sel.has(t.id)).flatMap(t => t.conceptos)));
+
+    host.appendChild(h('div', { class: 'fila', style: { marginBottom: '10px' } }, h('a', { class: 'btn fantasma peq', href: '#/examen' }, '← Modo examen')));
+    host.appendChild(h('h1', { text: 'Quiz a mi medida' }));
+    host.appendChild(h('p', { class: 'suave', html: md('Marca **los temas que quieres que te evalúe** y decide cuánto quieres de cada modalidad. Las preguntas se reparten entre los temas elegidos (con más peso en los que tienes más flojos) y se califican al entregar, como en un examen.') }));
+    const card = h('div', { class: 'card' });
+
+    /* ---- 1. temas ---- */
+    const secT = h('div', { class: 'cfg-sec' }, h('h3', { text: '1. ¿Qué temas quieres que te evalúe?' }));
+    const resumen = h('div', { class: 'quiz-resumen', 'aria-live': 'polite' });
+    const buscar = h('input', { type: 'search', class: 'quiz-buscar', placeholder: 'Buscar un tema…', 'aria-label': 'Buscar un tema' });
+    const aplicar = fn => { sel.clear(); temas.filter(t => disp[t.id] > 0 && fn(t)).forEach(t => sel.add(t.id)); refrescar(); };
+    const msg = h('div', { class: 'peq', style: { color: 'var(--mal)', minHeight: '1.3em' } });
+    secT.appendChild(h('div', { class: 'quiz-barra' },
+      h('button', { class: 'btn sec peq', type: 'button', onclick: () => aplicar(() => true) }, 'Todos'),
+      h('button', { class: 'btn sec peq', type: 'button', onclick: () => aplicar(() => false) }, 'Ninguno'),
+      h('button', { class: 'btn sec peq', type: 'button', title: 'Temas cuya práctica va por debajo del 70 %', onclick: () => { aplicar(t => { const m = B.maestriaTema(t); return m !== null && m < 0.7; }); if (!sel.size) msg.textContent = 'Todavía no hay temas flojos: practica un poco y vuelve a intentarlo.'; } }, '📉 Los más flojos'),
+      h('button', { class: 'btn sec peq', type: 'button', onclick: () => aplicar(t => !B.estudiado(t.id)) }, '🆕 Sin estudiar'),
+      h('button', { class: 'btn sec peq', type: 'button', onclick: () => aplicar(t => B.estudiado(t.id)) }, '✅ Ya estudiados')));
+    secT.appendChild(buscar);
+    const lista = h('div', { class: 'quiz-areas' });
+    B.areas.forEach(a => {
+      const ts = B.temasDeArea(a.id); if (!ts.length) return;
+      const cA = h('input', { type: 'checkbox', 'aria-label': 'Todos los temas de ' + a.nombre }); chkA[a.id] = cA;
+      const k = h('span', { class: 'chip' }); cont[a.id] = k;
+      cA.addEventListener('click', e => e.stopPropagation());
+      cA.addEventListener('change', () => { ts.filter(t => disp[t.id] > 0).forEach(t => { if (cA.checked) sel.add(t.id); else sel.delete(t.id); }); refrescar(); });
+      const det = h('details', { class: 'quiz-area' }, h('summary', null, cA, h('span', { class: 'quiz-ic', text: a.icono }), h('strong', { text: a.nombre }), k));
+      bloques[a.id] = det;
+      ts.forEach(t => {
+        const c = h('input', { type: 'checkbox', disabled: disp[t.id] === 0 || null, 'aria-label': t.titulo }); chkT[t.id] = c;
+        c.addEventListener('change', () => { if (c.checked) sel.add(t.id); else sel.delete(t.id); refrescar(); });
+        const m = B.maestriaTema(t), est = B.estudiado(t.id);
+        const fila = h('label', { class: 'quiz-tema' + (disp[t.id] === 0 ? ' bloq' : '') }, c, h('span', { class: 'quiz-nom' }, h('span', { text: t.titulo }), h('span', { class: 'peq tenue', text: disp[t.id] ? disp[t.id] + ' ejercicio' + (disp[t.id] === 1 ? '' : 's') + (est ? ' · estudiado' : '') : 'sin ejercicios todavía' })),
+          h('span', { class: 'chip ' + (m === null ? '' : m >= 0.8 ? 'ok' : m >= 0.5 ? 'aviso' : 'mal'), text: m === null ? 'sin práctica' : Math.round(m * 100) + ' %' }));
+        fila.dataset.txt = U.norm(t.titulo + ' ' + a.nombre + ' ' + (t.alias || '')); filas[t.id] = fila; det.appendChild(fila);
+      });
+      lista.appendChild(det);
+    });
+    secT.appendChild(lista); secT.appendChild(resumen);
+    buscar.addEventListener('input', () => {
+      const q = U.norm(buscar.value.trim());
+      B.areas.forEach(a => { let alguno = false; B.temasDeArea(a.id).forEach(t => { const ok = !q || filas[t.id].dataset.txt.includes(q); filas[t.id].style.display = ok ? '' : 'none'; if (ok) alguno = true; }); if (bloques[a.id]) { bloques[a.id].style.display = alguno ? '' : 'none'; if (q && alguno) bloques[a.id].open = true; } });
+    });
+    card.appendChild(secT);
+
+    /* ---- 2. modalidades ---- */
+    const mezcla = Object.assign({ teoria: 35, practica: 40, interaccion: 25 }, guardado.mezcla || {}), sl = {};
+    const secM = h('div', { class: 'cfg-sec' }, h('h3', { text: '2. ¿Qué modalidades quieres?' }));
+    M.QUIZ_CLASES.forEach(([k, ic, nom]) => {
+      const lab = h('span', { class: 'peq', text: mezcla[k] + ' %' });
+      const r = h('input', { type: 'range', class: 'rango', min: 0, max: 100, step: 5, value: mezcla[k], 'aria-label': nom });
+      r.addEventListener('input', () => { mezcla[k] = +r.value; lab.textContent = r.value + ' %'; });
+      sl[k] = r; secM.appendChild(h('div', { class: 'fila-tema', style: { gridTemplateColumns: '170px 1fr 60px' } }, h('strong', { text: ic + ' ' + nom }), r, lab));
+    });
+    secM.appendChild(h('div', { class: 'peq tenue', html: md('**Teoría**: elegir la opción, verdadero/falso con justificación y preguntas abiertas. **Práctica**: escribir código, predecir la salida de un programa, trazar tablas y calcular complejidades. **Interacción**: clasificar, ordenar pasos, y preguntas con figura (heaps, listas, árboles rojo-negro…) cuya explicación trae una animación. Se normaliza solo; si un tema no tiene una modalidad, se reparte entre las demás.') }));
+    card.appendChild(secM);
+
+    /* ---- 3. cantidad, dificultad y tiempo ---- */
+    const secN = h('div', { class: 'cfg-sec' }, h('h3', { text: '3. Cantidad, dificultad y tiempo' }));
+    const nIn = h('input', { type: 'number', class: 'num', min: 3, max: 40, value: guardado.n || 12, 'aria-label': 'Número de preguntas' });
+    const dif = h('select', { 'aria-label': 'Dificultad' }, [['mixta', 'Mixta (de fácil a difícil)'], ['basica', 'Básica'], ['media', 'Media'], ['dificil', 'Difícil']].map(([v, t]) => h('option', { value: v, text: t })));
+    dif.value = guardado.dif || 'mixta';
+    const cT = h('input', { type: 'checkbox' }); cT.checked = !!guardado.tiempo;
+    const min = h('input', { type: 'number', class: 'num', min: 5, max: 240, value: guardado.min || Math.max(10, Math.round((guardado.n || 12) * 3)), 'aria-label': 'Minutos' });
+    let minManual = !!guardado.min; min.addEventListener('input', () => { minManual = true; });
+    nIn.addEventListener('input', () => { if (!minManual) min.value = Math.max(10, Math.round((parseInt(nIn.value) || 12) * 3)); });
+    const cRev = h('input', { type: 'checkbox' }); cRev.checked = guardado.rev !== false;
+    const cCons = h('input', { type: 'checkbox' }); cCons.checked = !!guardado.cons;
+    secN.appendChild(h('div', { class: 'fila' }, h('label', { class: 'fila' }, 'Preguntas:', nIn), h('label', { class: 'fila' }, 'Dificultad:', dif)));
+    secN.appendChild(h('label', { class: 'check' }, cT, h('span', null, h('strong', { text: 'Con tiempo' }), h('div', { class: 'peq suave', text: 'Cuenta regresiva; al llegar a 0 se entrega solo.' }))));
+    secN.appendChild(h('div', { class: 'fila', style: { marginLeft: '28px' } }, h('label', { class: 'fila' }, 'Duración (minutos):', min), h('span', { class: 'peq tenue', text: 'Sugerido: ≈ 3 min por pregunta' })));
+    secN.appendChild(h('label', { class: 'check' }, cRev, h('span', { text: 'Permitir avanzar, retroceder y revisar antes de entregar' })));
+    secN.appendChild(h('label', { class: 'check' }, cCons, h('span', null, h('strong', { text: 'Consola de Python en las preguntas de código' }), h('div', { class: 'peq suave', text: 'Permite ejecutar tu código (solo muestra la salida). Desactivado = como en papel.' }))));
+    card.appendChild(secN);
+
+    function refrescar() {
+      msg.textContent = '';
+      temas.forEach(t => { if (chkT[t.id]) chkT[t.id].checked = sel.has(t.id); });
+      B.areas.forEach(a => { if (!chkA[a.id]) return; const ts = B.temasDeArea(a.id).filter(t => disp[t.id] > 0), k = ts.filter(t => sel.has(t.id)).length; const c = chkA[a.id]; c.checked = ts.length > 0 && k === ts.length; c.indeterminate = k > 0 && k < ts.length; c.disabled = !ts.length; cont[a.id].textContent = k + '/' + ts.length; });
+      const cs = conceptosSel(), tp = new Map(); Banco.filtrar({ conceptos: cs }).filter(x => !x.soloPractica).forEach(x => tp.set(x.id, M.claseQuiz(x)));
+      const n = { teoria: 0, practica: 0, interaccion: 0 }; tp.forEach(c => { n[c]++; });
+      U.vaciar(resumen);
+      resumen.appendChild(h('strong', { text: sel.size + ' tema' + (sel.size === 1 ? '' : 's') + ' elegido' + (sel.size === 1 ? '' : 's') }));
+      resumen.appendChild(h('span', { class: 'peq tenue', text: sel.size ? ' · hay ' + tp.size + ' plantillas de ejercicio distintas: ' + M.QUIZ_CLASES.map(([k, ic, nom]) => ic + ' ' + n[k]).join(' · ') : ' · marca al menos uno para empezar' }));
+      U.Store.set(CLAVE, { temas: Array.from(sel), mezcla, n: parseInt(nIn.value) || 12, dif: dif.value, tiempo: cT.checked, min: minManual ? parseInt(min.value) || undefined : undefined, rev: cRev.checked, cons: cCons.checked });
+    }
+    [nIn, dif, cT, min, cRev, cCons].forEach(el => el.addEventListener('change', refrescar));
+
+    card.appendChild(msg);
+    card.appendChild(h('div', { class: 'acciones' }, h('button', { class: 'btn grande', onclick: () => {
+      if (!sel.size) { msg.textContent = 'Marca al menos un tema.'; return; }
+      if (U.sum(Object.values(mezcla)) === 0) { msg.textContent = 'La mezcla no puede ser 0 % en todas las modalidades.'; return; }
+      const cfg = M.cfgExamenDefault(); cfg.acumulativo = false; cfg.consola = cCons.checked; cfg.revisar = cRev.checked;
+      cfg.n = U.clamp(parseInt(nIn.value) || 12, 3, 40); cfg.dificultad = dif.value; cfg.tiempo = cT.checked; cfg.minutos = U.clamp(parseInt(min.value) || cfg.n * 3, 5, 240);
+      cfg.conceptos = conceptosSel(); cfg.mezcla = Object.assign({}, mezcla);
+      const nivs = new Set(); cfg.conceptos.forEach(c => { if (Tm.conceptos[c]) nivs.add(Tm.conceptos[c].nivel); }); cfg.niveles = Array.from(nivs).sort((a, b) => a - b);
+      cfg.etiqueta = 'Quiz a mi medida (' + sel.size + ' tema' + (sel.size === 1 ? '' : 's') + ')'; cfg.quiz = { temas: Array.from(sel), mezcla: Object.assign({}, mezcla) };
+      const items = M.generarQuiz(cfg, []);
+      const ex = { id: U.uid(), cfg, items, resp: items.map(() => null), marcas: items.map(() => false), resp_ok: items.map(() => false), idx: 0, maxIdx: 0, inicio: Date.now(), fin: cfg.tiempo ? Date.now() + cfg.minutos * 60000 : null };
+      M.setExamenActivo(ex); location.hash = '#/examen/curso';
+    } }, 'Comenzar quiz ▶'), h('a', { class: 'btn fantasma', href: '#/examen' }, 'Cancelar')));
+    host.appendChild(card);
+    refrescar();
+    B.areas.forEach(a => { if (bloques[a.id] && B.temasDeArea(a.id).some(t => sel.has(t.id))) bloques[a.id].open = true; });   // se abren las áreas que ya traen temas marcados
+  }
+
+  V.examenConfig = function (host, args, query) {
     if ((args[0] || '') === 'parcial') return configParcial(host);
+    if ((args[0] || '') === 'quiz') return configQuiz(host, query || {});
     const preset = args[0] || 'simulacro'; const cfg = M.cfgExamenDefault(); let minManual = false;
     const des = M.nivelesDesbloqueados();
     let titulo = 'Simulacro configurable';
@@ -297,6 +415,23 @@
     const cC = h('div', { class: 'card' }, h('h2', { text: 'Por tipo de pregunta' }));
     Object.keys(e.catPct).forEach(k => { const x = e.catPct[k]; cC.appendChild(h('div', { class: 'fila-tema', style: { gridTemplateColumns: '1fr 1.2fr 54px' } }, h('div', null, h('strong', { text: CAT_N[k] }), h('div', { class: 'peq tenue', text: x.n + ' pregunta(s)' })), Vc.barra(x.pct), h('b', { text: Math.round(x.pct * 100) + ' %' }))); });
     g.appendChild(cN); g.appendChild(cC); host.appendChild(g);
+
+    // quiz a la medida: resultado por modalidad y por tema elegido
+    if (e.cfg && e.cfg.quiz && ET.Biblioteca) {
+      const B = ET.Biblioteca, cQ = h('div', { class: 'card espacio' }, h('h2', { text: 'Tu quiz a mi medida' }));
+      const porClase = {}; qs.forEach((q, i) => { const tp = Banco.porId[q.tplId]; if (!tp) return; const k = M.claseQuiz(tp); const x = porClase[k] || (porClase[k] = { s: 0, n: 0 }); x.s += e.scores[i]; x.n++; });
+      cQ.appendChild(h('h3', { text: 'Por modalidad' }));
+      M.QUIZ_CLASES.forEach(([k, ic, nom]) => { const x = porClase[k]; if (!x) return; cQ.appendChild(h('div', { class: 'fila-tema', style: { gridTemplateColumns: '1fr 1.2fr 54px' } }, h('div', null, h('strong', { text: ic + ' ' + nom }), h('div', { class: 'peq tenue', text: x.n + ' pregunta(s)' })), Vc.barra(x.s / x.n), h('b', { text: Math.round(x.s / x.n * 100) + ' %' }))); });
+      cQ.appendChild(h('h3', { class: 'espacio', text: 'Por tema elegido' }));
+      const filasT = (e.cfg.quiz.temas || []).map(id => B.porId[id]).filter(Boolean).map(t => { const v = t.conceptos.map(c => e.concPct[c]).filter(Boolean); return { t, pct: v.length ? U.avg(v.map(x => x.pct)) : null, n: v.reduce((s, x) => s + x.n, 0) }; });
+      filasT.sort((a, b) => (a.pct === null ? 2 : a.pct) - (b.pct === null ? 2 : b.pct));
+      filasT.forEach(({ t, pct, n }) => cQ.appendChild(h('div', { class: 'fila-tema', style: { gridTemplateColumns: '1fr 1.2fr 54px' } }, h('div', null, h('a', { href: '#/biblioteca/' + t.id }, h('strong', { text: t.titulo })), h('div', { class: 'peq tenue', text: pct === null ? 'sin preguntas en este quiz' : n + ' pregunta(s) tocaron este tema' })), pct === null ? h('span') : Vc.barra(pct), h('b', { text: pct === null ? '—' : Math.round(pct * 100) + ' %' }))));
+      const flojosT = filasT.filter(x => x.pct !== null && x.pct < 0.7);
+      cQ.appendChild(h('div', { class: 'acciones' },
+        h('a', { class: 'btn', href: '#/examen/config/quiz?temas=' + encodeURIComponent((e.cfg.quiz.temas || []).join(',')) }, '🔁 Otro quiz con estos temas'),
+        flojosT.length ? h('a', { class: 'btn sec', href: '#/examen/config/quiz?temas=' + encodeURIComponent(flojosT.map(x => x.t.id).join(',')) }, '📉 Quiz solo de los flojos (' + flojosT.length + ')') : null));
+      host.appendChild(cQ);
+    }
 
     // conceptos a estudiar
     const flojos = Object.entries(e.concPct).filter(([c, x]) => Tm.conceptos[c] && x.pct < 0.7).sort((a, b) => a[1].pct - b[1].pct);

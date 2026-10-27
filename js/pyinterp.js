@@ -433,7 +433,16 @@
       if (f instanceof PyObj) { const m = this.findAttr(f.cls, '__call__'); if (m) return this.call(m, [f].concat(args), kw); }
       throw this.mkExc('TypeError', "'" + this.tname(f) + "' object is not callable");
     }
+    /** nombres de métodos abstractos (@abstractmethod) sin implementar, solo para clases que heredan de abc.ABC */
+    abstractos(cls) {
+      if (!this._ABC || !this.mro(cls).includes(this._ABC)) return [];
+      const nombres = new Set();
+      for (const c of this.mro(cls)) for (const [k, v] of c.attrs) if (v instanceof PyFunc && v.abstract) nombres.add(k);
+      return [...nombres].filter(k => { const r = this.findAttr(cls, k); return r instanceof PyFunc && r.abstract; }).sort();
+    }
     instantiate(cls, args, kw) {
+      const abs = this.abstractos(cls);
+      if (abs.length) throw this.mkExc('TypeError', "Can't instantiate abstract class " + cls.name + ' without an implementation for abstract method' + (abs.length > 1 ? 's ' : ' ') + abs.map(n => "'" + n + "'").join(', '));
       const obj = new PyObj(cls);
       if (this.onNew !== null) this.onNew(obj);
       const init = this.findAttr(cls, '__init__');
@@ -946,7 +955,7 @@
       const mods = this.modules();
       const root = name;
       if (mods[root]) return mods[root];
-      throw this.mkExc('ModuleNotFoundError', "No module named '" + name + "' (este intérprete solo incluye math, functools, collections, time, random, sys)");
+      throw this.mkExc('ModuleNotFoundError', "No module named '" + name + "' (este intérprete solo incluye math, functools, collections, heapq, copy, abc, time, random, sys)");
     }
   }
 

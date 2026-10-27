@@ -46,7 +46,7 @@
   M.dominio = (n, e) => { const h = M.etapaInfo(n, e).hist.slice(-10); return { n: h.length, dom: h.length ? U.avg(h) : 0 }; };
   M.etapaCompleta = (n, e) => { const d = M.dominio(n, e); return d.n >= 5 && d.dom * 100 >= E.config.umbral - 1e-9; };
   M.nivelCompleto = n => M.etapaCompleta(n, 'C');
-  M.nivelDesbloqueado = n => E.config.desbloqueoLibre || n === 1 || M.nivelCompleto(n - 1);
+  M.nivelDesbloqueado = n => E.config.desbloqueoLibre || n === 1 || !!(Tm.niveles[n - 1] && Tm.niveles[n - 1].libre) || M.nivelCompleto(n - 1);   // los niveles 9+ son libres (no dependen del anterior)
   M.etapaDesbloqueada = (n, e) => {
     if (E.config.desbloqueoLibre) return true;
     if (!M.nivelDesbloqueado(n)) return false;
@@ -55,7 +55,8 @@
   };
   M.avanceEtapa = (n, e) => { const d = M.dominio(n, e); if (M.etapaCompleta(n, e)) return 1; return d.n ? Math.min(0.97, d.dom * Math.min(1, d.n / 5)) : 0; };
   M.progresoNivel = n => U.avg(ETAPAS.map(e => M.avanceEtapa(n, e)));
-  M.progresoGlobal = () => U.avg(Tm.niveles.map(l => M.progresoNivel(l.id)));
+  M.progresoGlobal = () => U.avg(Tm.niveles.filter(l => !l.libre).map(l => M.progresoNivel(l.id)));   // ruta principal (niveles 1-8)
+  M.progresoExtra = () => { const ls = Tm.niveles.filter(l => l.libre); return ls.length ? U.avg(ls.map(l => M.progresoNivel(l.id))) : 0; };
   M.etapaActual = n => { for (const e of ETAPAS) if (!M.etapaCompleta(n, e)) return e; return 'C'; };
   M.nivelesDesbloqueados = () => Tm.niveles.map(l => l.id).filter(M.nivelDesbloqueado);
 
@@ -246,10 +247,51 @@
     items.sort((a, b) => (a.dif + rng.next() * 1.4) - (b.dif + rng.next() * 1.4));
     return items.map(({ tplId, seed, opts }) => ({ tplId, seed, opts }));
   };
+  /* ============ quiz a la medida: el usuario elige temas y la mezcla de modalidades ============ */
+  M.QUIZ_CLASES = [['teoria', '📖', 'Teoría'], ['practica', '🛠', 'Práctica'], ['interaccion', '🧩', 'Interacción']];
+  /** teoría = elegir, V/F y abiertas; interacción = clasificar, ordenar, construir árboles/rotaciones y toda pregunta con figura o animación;
+      práctica = el resto (escribir código, predecir salidas, trazar tablas, complejidad) */
+  M.claseQuiz = t => {
+    Banco.categoriaDe(t);
+    if (['clasificar', 'orden', 'arbol', 'avl'].includes(t._tipo) || t._vis) return 'interaccion';
+    if (['opcion', 'vf', 'abierta'].includes(t._tipo)) return 'teoria';
+    return 'practica';
+  };
+  /** cfg: {conceptos[], n, dificultad, mezcla:{teoria,practica,interaccion}} -> [{tplId, seed, opts}]. Reparte las preguntas entre las modalidades
+      disponibles y entre los conceptos elegidos (los menos cubiertos y los más flojos pesan más). */
+  M.generarQuiz = function (cfg, evitar) {
+    evitar = evitar || [];
+    const difR = { basica: [1, 2], media: [2, 4], dificil: [4, 5], mixta: [1, 5] }[cfg.dificultad] || [1, 5];
+    const conc = cfg.conceptos || [];
+    let pool = Banco.filtrar({ conceptos: conc, dif: difR }).filter(t => !t.soloPractica);
+    if (pool.length < Math.min(cfg.n, 6)) pool = Banco.filtrar({ conceptos: conc }).filter(t => !t.soloPractica);
+    if (!pool.length) pool = Banco.filtrar({}).filter(t => !t.soloPractica);
+    const porClase = { teoria: [], practica: [], interaccion: [] }; pool.forEach(t => porClase[M.claseQuiz(t)].push(t));
+    const pesos = {}; Object.keys(porClase).forEach(k => { if (porClase[k].length) pesos[k] = cfg.mezcla && cfg.mezcla[k] !== undefined ? cfg.mezcla[k] : 1; });
+    if (!U.sum(Object.values(pesos))) Object.keys(porClase).forEach(k => { if (porClase[k].length) pesos[k] = 1; });
+    const cuotas = repartir(cfg.n, pesos), rng = new U.RNG(U.newSeed());
+    const usadoTpl = {}, usadoConc = {}, items = [], faltan = Object.assign({}, cuotas);
+    const orden = Object.keys(cuotas).sort((a, b) => cuotas[b] - cuotas[a]);
+    for (let vueltas = 0; Object.values(faltan).some(v => v > 0) && vueltas < 500; vueltas++) {
+      for (const k of orden) {
+        if (faltan[k] <= 0) continue;
+        const cand = porClase[k]; if (!cand.length) { faltan[k] = 0; continue; }
+        const t = rng.weighted(cand, tp => {
+          const cs = tp.c.filter(c => conc.includes(c)), cob = cs.length ? U.avg(cs.map(c => usadoConc[c] || 0)) : 0;
+          const deb = U.avg(tp.c.map(c => { const m = M.maestria(c); return m === null ? 0.5 : 1 - m; }));
+          return (0.6 + 0.8 * deb) / (1 + 30 * (usadoTpl[tp.id] || 0) + 2 * cob + (evitar.includes(tp.id) ? 6 : 0));
+        });
+        usadoTpl[t.id] = (usadoTpl[t.id] || 0) + 1; t.c.forEach(c => { if (conc.includes(c)) usadoConc[c] = (usadoConc[c] || 0) + 1; });
+        items.push({ tplId: t.id, seed: U.newSeed(), opts: null, dif: t.dif }); faltan[k]--;
+      }
+    }
+    items.sort((a, b) => (a.dif + rng.next() * 1.4) - (b.dif + rng.next() * 1.4));
+    return items.map(({ tplId, seed, opts }) => ({ tplId, seed, opts }));
+  };
   /** Parcial simulado: una pregunta de cada tipo del parcial del profesor (V/F con justificación, tabla de complejidades,
       complejidad con variable/caso/regla, algoritmo en 4 literales, programación con casos borde), 1,0 punto cada una. */
   M.PARCIAL_SLOTS = ['vf', 'tabla', 'cplx', 'alg', 'prog'];
-  M.PARCIAL_NIVELES = [1, 3, 4, 5, 6, 7];
+  M.PARCIAL_NIVELES = [1, 3, 4, 5, 6, 7, 13];
   M.generarParcial = function (cfg, evitar) {
     evitar = evitar || [];
     const niveles = cfg && cfg.niveles && cfg.niveles.length ? cfg.niveles : M.PARCIAL_NIVELES;

@@ -116,6 +116,10 @@
       }));
     }
     const nodo = txt(v);
+    if (k === 'ejemplo' && t.lab && t.lab.length) {   // animaciones del Laboratorio (estructuras de datos)
+      const bl = h('div', { class: 'bib-inters' }, h('h3', { text: 'Míralo animado' }), h('p', { class: 'peq suave', text: 'Animación paso a paso en el Laboratorio: cada paso muestra la explicación y la línea de código que se ejecuta.' }), h('div', { class: 'acciones' }, t.lab.map(l => h('a', { class: 'btn', href: '#/lab/' + l.tab + (l.e ? '?e=' + l.e : '') }, '▶ ' + (l.texto || 'Ver la animación')))));
+      return h('div', null, nodo, bl, t.interactivo.length ? h('div', null, h('h3', { text: 'Compruébalo tú: ejemplos interactivos' }), t.interactivo.map(id => ejemploInteractivo(id, montados))) : null);
+    }
     if (k === 'ejemplo' && t.interactivo.length) {
       const bl = h('div', { class: 'bib-inters' }, h('h3', { text: 'Compruébalo tú: ejemplos interactivos' }), h('p', { class: 'peq suave', text: 'El código se ejecuta de verdad; el árbol se reconstruye de esa ejecución (pausa, avanza, retrocede, mira variables y toca un nodo para ver qué líneas lo crearon).' }), t.interactivo.map(id => ejemploInteractivo(id, montados)));
       return h('div', null, nodo, bl);
@@ -129,10 +133,11 @@
     f.appendChild(h('div', { class: 'peq suave', text: conc.length ? 'Conceptos evaluados: ' + conc.map(c => (Tm.conceptos[c] || { nombre: c }).nombre).join(' · ') : 'Este tema es de apoyo y no tiene ejercicios propios; el resto de la biblioteca sí.' }));
     if (ma !== null) f.appendChild(h('div', { class: 'fila-tema', style: { gridTemplateColumns: '150px 1fr 50px' } }, h('span', { class: 'peq', text: 'Dominio en práctica' }), Vc.barra(ma), h('b', { text: pctTxt(ma) })));
     const ac = h('div', { class: 'acciones' });
-    if (conc.length) ac.append(h('a', { class: 'btn', href: '#/repaso?foco=' + encodeURIComponent(conc.join(',')) }, '🧭 Práctica guiada de este tema'), h('a', { class: 'btn sec', href: '#/examen/config/tema-' + t.id }, '⏱ Examen de este tema'));
+    if (conc.length) ac.append(h('a', { class: 'btn', href: '#/repaso?foco=' + encodeURIComponent(conc.join(',')) }, '🧭 Práctica guiada de este tema'), h('a', { class: 'btn sec', href: '#/examen/config/tema-' + t.id }, '⏱ Examen de este tema'), h('a', { class: 'btn sec', href: '#/examen/config/quiz?temas=' + encodeURIComponent(t.id) }, '🎯 Quiz a mi medida'));
     if (er) ac.append(h('a', { class: 'btn sec', href: '#/errores?tema=' + t.id }, '📝 Mis errores aquí (' + er + ')'));
     if (['bs', 'av', 'rn'].includes(t.area)) ac.append(h('a', { class: 'btn sec', href: '#/lab/taller' }, '✋ Taller interactivo'), h('a', { class: 'btn sec', href: '#/lab/arboles' }, '🌳 Visualizador'));
     if (['ar', 'tv'].includes(t.area)) ac.append(h('a', { class: 'btn sec', href: '#/lab/arboles' }, '🌳 Visualizador'));
+    (t.lab || []).forEach(l => ac.append(h('a', { class: 'btn sec', href: '#/lab/' + l.tab + (l.e ? '?e=' + l.e : '') }, '▶ ' + (l.texto || 'Animación'))));
     ac.append(h('a', { class: 'btn sec', href: '#/lab/consola' }, '⌨ Editor de código'));
     f.appendChild(ac);
     return f;
@@ -182,11 +187,11 @@
   function vistaInicio(main) {
     const g = B.progresoGlobal(), sig = B.siguientePendiente();
     main.appendChild(h('h1', { text: '📚 Biblioteca de estudio' }));
-    main.appendChild(h('p', { class: 'suave', text: 'Teoría completa del curso, escrita dentro de la aplicación a partir de todas las diapositivas: ' + B.ordenados().length + ' temas en 9 áreas, cada uno con las mismas diez partes (definición, intuición, teoría formal, procedimiento, código, ejemplo resuelto, complejidad, errores, preguntas de examen y resumen). Lo que no está en los PDF aparece marcado como contenido complementario.' }));
+    main.appendChild(h('p', { class: 'suave', text: 'Teoría completa del curso, escrita dentro de la aplicación a partir de todas las diapositivas: ' + B.ordenados().length + ' temas en ' + B.areas.length + ' áreas, cada uno con las mismas diez partes (definición, intuición, teoría formal, procedimiento, código, ejemplo resuelto, complejidad, errores, preguntas de examen y resumen). Lo que no está en los PDF aparece marcado como contenido complementario.' }));
     const top = h('div', { class: 'card bib-hero' }, h('div', { class: 'fila sep' }, h('div', null, h('strong', { text: 'Tu avance: ' + g.n + ' de ' + g.total + ' temas estudiados' }), Vc.barra(g.p)), sig ? h('a', { class: 'btn', href: ruta(sig.id) }, (g.n ? '▶ Continuar: ' : '▶ Empezar: ') + sig.titulo) : h('span', { class: 'chip ok', text: '🏁 ¡Biblioteca completa!' })));
     main.appendChild(top);
     main.appendChild(h('div', { class: 'grid g4 bib-acc' }, [['formulas', '🧮', 'Fórmulas, reglas y condiciones', B.formulas.length + ' fórmulas con variables y ejemplo'], ['tablas', '📊', 'Comparaciones y complejidades', B.tablas.length + ' tablas (BST/AVL, pre/in/post, tiempos y espacios…)'], ['repaso', '⚡', 'Repaso antes del examen', 'Todo lo esencial en una sola vista'], ['favoritos', '★', 'Mis favoritos', Object.keys(B.estado().favoritos).length + ' guardados']].map(([k, ic, t, d]) => h('a', { class: 'modo', href: ruta(k) }, h('h3', null, h('span', { class: 'ic', text: ic }), t), h('p', { class: 'peq suave', text: d })))));
-    main.appendChild(h('h2', { class: 'espacio', text: 'Las nueve áreas' }));
+    main.appendChild(h('h2', { class: 'espacio', text: 'Las ' + B.areas.length + ' áreas' }));
     main.appendChild(h('div', { class: 'bib-areas' }, B.areas.map(tarjetaArea)));
   }
   function vistaArea(main, a) {
@@ -195,7 +200,7 @@
     const cab = h('div', { class: 'card bib-cab' }); cab.style.setProperty('--ac', a.color);
     cab.append(h('div', { class: 'fila' }, h('span', { class: 'chip acento', text: 'Fuente: ' + a.fuente })), h('h1', { text: a.icono + ' ' + a.nombre }), h('p', { class: 'suave', text: a.desc }), Vc.barra(p.p), h('div', { class: 'peq tenue', text: p.n + ' de ' + p.total + ' temas estudiados' }));
     const ac = h('div', { class: 'acciones' });
-    if (conc.length) ac.append(h('a', { class: 'btn', href: '#/repaso?foco=' + encodeURIComponent(conc.join(',')) }, '🧭 Práctica guiada del área'), h('a', { class: 'btn sec', href: '#/examen/config/area-' + a.id }, '⏱ Examen del área'));
+    if (conc.length) ac.append(h('a', { class: 'btn', href: '#/repaso?foco=' + encodeURIComponent(conc.join(',')) }, '🧭 Práctica guiada del área'), h('a', { class: 'btn sec', href: '#/examen/config/area-' + a.id }, '⏱ Examen del área'), h('a', { class: 'btn sec', href: '#/examen/config/quiz?areas=' + encodeURIComponent(a.id) }, '🎯 Quiz a mi medida'));
     cab.appendChild(ac); main.appendChild(cab);
     ts.forEach((t, i) => main.appendChild(h('div', { class: 'card bib-fila' }, h('div', null, h('div', { class: 'peq tenue', text: 'Tema ' + (i + 1) + ' · ' + t.fuente }), h('h3', { style: { margin: '2px 0' } }, h('a', { href: ruta(t.id), text: t.titulo })), t.comp ? h('span', { class: 'chip comp', text: 'incluye contenido complementario' }) : null), h('div', { class: 'fila' }, B.estudiado(t.id) ? h('span', { class: 'chip ok', text: '✔ estudiado' }) : null, B.favorito(t.id) ? h('span', { class: 'chip', text: '★' }) : null, h('a', { class: 'btn sec peq', href: ruta(t.id) }, 'Abrir')))));
   }

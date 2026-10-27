@@ -1,17 +1,32 @@
 # Entrenador de Estructuras de Datos (UIS · 41336)
 
 Aplicación web **local y sin dependencias** para estudiar, practicar y evaluarte en: **recursión, Big O, paradigmas
-algorítmicos, árboles, recorridos, BST, AVL y rojo-negro**. El contenido sale de las diapositivas del profesor Jheyston Serrano
+algorítmicos, árboles, recorridos, BST, AVL y rojo-negro** y, en los niveles 9 a 14, **TAD y memoria, arreglos y técnicas, pilas y
+colas, listas enlazadas, heaps (min/max) y condicionales**. El contenido sale de las diapositivas del profesor Jheyston Serrano
 (ver [`docs/TEMARIO.md`](docs/TEMARIO.md): temario organizado, convenciones del curso y qué es complemento).
 
-* **📚 Biblioteca de estudio** (menú *Biblioteca*): teoría completa **escrita dentro de la aplicación** a partir de los seis PDF
-  de clase (S2-C1, S2-C2, S5-C2, S6-C1, S6-C2 y S7-C1 completo, 49 diapositivas). **53 temas en 9 áreas** (recursión, complejidad,
-  paradigmas, fundamentos de árboles, recorridos, BST, AVL, rojo-negro y temas adicionales); cada tema tiene las **mismas diez
+* **🎬 Animaciones paso a paso** (*Laboratorio*): lista enlazada simple y doble (insertar al inicio, al final y en una posición,
+  eliminar, buscar, invertir, ciclos con la liebre y la tortuga), pilas (apilar, balanceo de símbolos, pila monótona), colas
+  (`list.pop(0)` frente a `deque.popleft()`, deque y cola circular), arreglos (direcciones, prefijos, Kadane, dos punteros,
+  ventana, merge intervals), **heaps** (insertar con bubble up, extraer con bubble down, `heapify`, top-k y heapsort, con el
+  árbol y el arreglo a la vez), **rojo-negro** (inserción en tres casos y eliminación con doble negro, con recoloreos y
+  rotaciones) y memoria (pila de llamadas, montículo, referencias y copias). Cada cuadro lleva su explicación y resalta la
+  **línea de código** que se ejecuta; el código tiene su propio desplazamiento y **la página no se mueve**. Las animaciones se
+  generan con los algoritmos reales (se comprueban contra CPython), y también aparecen en la explicación de muchas preguntas.
+* **🎯 Quiz a mi medida** (*Examen → Quiz a mi medida*): tú marcas los **temas** de la Biblioteca (por área, uno por uno, «los
+  más flojos», «sin estudiar» o con el buscador) y la **mezcla** de teoría, práctica (código, trazas, tablas) e interacción
+  (clasificar, ordenar pasos y preguntas con figura y animación); se reparte entre los temas elegidos con más peso en los más
+  flojos y se califica como un examen, con informe por modalidad y por tema.
+* **📚 Biblioteca de estudio** (menú *Biblioteca*): teoría completa **escrita dentro de la aplicación** a partir de los PDF
+  de clase (S2-C1, S2-C2, S5-C2, S6-C1, S6-C2, S7-C1 completo, y S1-C1, S1-C2, S3-C1, S3-C2, S4-C1, S4-C2, S7-C2 y los de
+  condicionales de Algoritmos y Programación). **86 temas en 15 áreas** (recursión, complejidad,
+  paradigmas, fundamentos de árboles, recorridos, BST, AVL, rojo-negro, heaps, TAD y memoria, arreglos, pilas y colas, listas
+  enlazadas, condicionales y temas adicionales); cada tema tiene las **mismas diez
   partes** (definición, explicación intuitiva, teoría formal, procedimiento, código de referencia en Python, ejemplo resuelto,
   complejidad con justificación, errores frecuentes, preguntas de examen y resumen rápido). Lo que **no** está en los PDF aparece
-  marcado como *contenido complementario*. Incluye 41 **fórmulas y reglas** (variables, cuándo se usa, ejemplo y condiciones), 15
+  marcado como *contenido complementario*. Incluye 59 **fórmulas y reglas** (variables, cuándo se usa, ejemplo y condiciones), 25
   **tablas comparativas** (BST/AVL, AVL/rojo-negro, recursión/memoización, fuerza bruta/DP, pre/in/postorden, complejidades temporales
-  y espaciales…), un **Repaso antes del examen** compacto con autoevaluación, índice lateral, **buscador de conceptos**, marcar
+  y espaciales, arreglo/lista enlazada, pila/cola/deque, heap/BST…), un **Repaso antes del examen** compacto con autoevaluación, índice lateral, **buscador de conceptos**, marcar
   *estudiado*, *favoritos* y enlaces a la **práctica guiada** y al **examen de cada tema o área**. Los temas de árboles abren
   **ejemplos interactivos** (más de 12 nodos) con el depurador *Código ↔ Árbol*.
 * **💻 Código ↔ Árbol** (*Laboratorio → Código ↔ Árbol* y dentro de la Biblioteca): el árbol que ves **se reconstruye de la
@@ -19,8 +34,10 @@ algorítmicos, árboles, recorridos, BST, AVL y rojo-negro**. El contenido sale 
   pausa, paso a paso, reinicio, variables y pila de llamadas; clic en un nodo → qué líneas lo crearon o modificaron; clic en una
   línea → qué cambió. Funciona con inserciones, búsquedas, eliminaciones, recorridos y rotaciones AVL (y rojo-negro con colores).
   Lo que no se puede dibujar (árboles hechos con listas o diccionarios, Python no soportado) **se informa**, nunca se simula.
-* **239 plantillas** (222 activas; 17 preguntas «básicas» retiradas, ver más abajo) en 8 niveles × 3 etapas, que generan variantes
-  distintas en cada intento (valores, árboles, secuencias de inserción y fragmentos de código cambian).
+* **337 plantillas** (320 activas; 17 preguntas «básicas» retiradas, ver más abajo) en 14 niveles × 3 etapas, que generan variantes
+  distintas en cada intento (valores, árboles, secuencias de inserción y fragmentos de código cambian). Los niveles 1-8 son la
+  ruta principal (se desbloquean con el avance); los niveles **9-14** (TAD y memoria, arreglos, pilas y colas, listas
+  enlazadas, heaps y condicionales) son **libres**: están siempre abiertos y no cuentan para el desbloqueo.
 * **Modelo de parcial del profesor** (pregunta de 1,0 punto con literales): verdadero/falso **con justificación escrita**, tabla de
   complejidades (con «amortizado»), complejidad con **variable + caso + regla + justificación**, algoritmo en 4 literales (trazado,
   resultado, implementación con casos borde —el O(n²) vale la mitad—, argumento amortizado) y programación con casos borde y reglas
@@ -92,7 +109,11 @@ css/estilos.css       estilos (claro/oscuro, responsive)
 js/util.js            RNG con semilla, DOM, almacenamiento, resaltado de Python
 js/pyparse.js         tokenizador y parser de un subconjunto de Python
 js/pyinterp.js        intérprete (recorrido del AST)
-js/pybuiltins.js      funciones integradas, métodos y módulos (math, functools, collections, time, random, sys)
+js/pybuiltins.js      funciones integradas, métodos y módulos (math, functools, collections, heapq, copy, abc, time, random, sys)
+js/escena.js          motor de animación (escenas SVG con interpolación) y reproductor con código sincronizado
+js/sim_*.js           simuladores con los algoritmos reales: lista, pila/cola, arreglo, heap, rojo-negro y memoria
+js/vistas_estructuras.js   pestañas del Laboratorio para esas estructuras (con ejemplos `?e=`)
+js/temario_ext.js     niveles 9-14 (libres) y sus 38 conceptos
 js/pyapi.js           ejecutar, sesiones de prueba, análisis estático y diagnósticos
 js/arboles.js         árboles: BST/AVL, notación, generadores, dibujo SVG y animaciones
 js/traza.js           traza de ejecución (eventos de objetos y atributos) y reconstrucción del árbol en cada paso
@@ -101,7 +122,7 @@ js/temario.js         niveles, etapas y conceptos (teoría breve + ejemplo + fue
 js/editor.js          editor de código con resaltado, números de línea y auto-sangría
 js/codigo_arbol.js    depurador «Código ↔ Árbol» (se usa en el Laboratorio y dentro de la Biblioteca)
 js/biblioteca.js      registro de la Biblioteca: temas, fórmulas, tablas, repaso, búsqueda y progreso
-js/teoria_*.js        contenido de la Biblioteca (rec, cx1/cx2, pd, ar, tv, bs, av, rn, ad, formulas, tablas, repaso)
+js/teoria_*.js        contenido de la Biblioteca (rec, cx1/cx2, pd, ar, tv, bs, av, rn, hp, td, ay, pc, le, cd, ad, formulas, tablas, repaso, extra)
 js/vistas_biblioteca.js  pantallas de la Biblioteca (índice, tema, fórmulas, tablas, repaso, favoritos, búsqueda)
 js/banco_biblioteca.js   ejercicios de los temas que no tenían práctica propia (medir/contar, constantes, clásicos/NP, rojo-negro)
 js/tipos.js, tipos2.js   tipos de pregunta: render + corrección + solución
@@ -112,6 +133,8 @@ js/banco_n1.js … n8.js   plantillas de cada nivel
 js/banco_taller.js    plantillas de los talleres interactivos (solo práctica)
 js/banco_pq*.js       banco «tipo parcial»: V/F con justificación (pq), complejidades (pq_cplx), tablas (pq_tabla),
                       algoritmo en 4 literales (pq_alg) y programación con casos borde (pq_prog)
+js/banco_ext.js … ext3.js   niveles 9-14 (TAD y memoria, arreglos, pilas y colas, listas, heaps, condicionales) y preguntas con figura
+                      y animación del rojo-negro; ayudas compartidas en `ET.BancoExt`
 js/banco_retiro.js    lista de preguntas «básicas» retiradas (siguen registradas pero no se sirven)
 js/motor.js           estado, dominio, desbloqueos, selección adaptativa, errores, exámenes, recomendaciones
 js/vistas_*.js, app.js   pantallas y enrutador
@@ -214,9 +237,17 @@ niveles están en la lista `niveles` del mismo archivo.
 * **Código ↔ Árbol:** 78 comprobaciones sobre los ejemplos (el árbol final coincide con el motor de AVL/BST, las propiedades
   rojo-negro se cumplen, el avance y el retroceso son deterministas, el historial de cada nodo apunta a las líneas reales, un árbol de
   60 nodos, nombres de atributo personalizados y errores/límites informados).
-* **Biblioteca:** 3 469 comprobaciones: las diez partes de los 53 temas, enlaces internos, conceptos del temario ↔ temas,
-  búsqueda, 59 bloques de código ejecutados con el intérprete del entrenador **y** con **CPython 3.12** (salida idéntica a la
-  declarada), 41 fórmulas y 15 tablas bien formadas, las 67 pantallas se dibujan, el examen y la práctica de **cada tema** se generan,
+* **Niveles 9-14 y animaciones:** las 98 plantillas nuevas se instancian con 12 semillas (el banco completo son **337 plantillas ×
+  12 = 4 044 instancias**, 0 fallos): la solución de referencia puntúa 100 %, la respuesta en blanco no y cada tipo se dibuja y
+  completa su ciclo; las respuestas de los heaps se contrastan al generar cada pregunta con una segunda implementación
+  independiente, y el simulador del **rojo-negro** produce el mismo árbol (valores y colores) que la clase `ArbolRN` de la
+  Biblioteca ejecutada en el intérprete (40 secuencias aleatorias de inserciones y eliminaciones, y 60 en una comprobación
+  aparte); los **425** programas de código y salida del banco (más 92 bloques de la
+  Biblioteca) coinciden con **CPython** (0 diferencias); las 1 857 figuras y cuadros de animación se dibujan sin coordenadas
+  inválidas; el generador del **quiz a mi medida** se probó con 60 combinaciones (15 áreas × 4 mezclas).
+* **Biblioteca:** 6 670 comprobaciones: las diez partes de los 86 temas, enlaces internos, conceptos del temario ↔ temas,
+  búsqueda, 93 bloques de código ejecutados con el intérprete del entrenador **y** con **CPython 3.12** (salida idéntica a la
+  declarada), 59 fórmulas y 25 tablas bien formadas, las 106 pantallas se dibujan, el examen y la práctica de **cada tema** se generan,
   los ejemplos de BST/AVL/rojo-negro llegan a más de 12 nodos y una **lista de 419 frases clave de los 6 PDF** (diapositiva por
   diapositiva) aparece en el texto. El rojo-negro (con ramas espejo completas) se verificó con 24 555 operaciones aleatorias en CPython
   (raíz negra, sin rojos seguidos, misma altura negra, inorden, punteros al padre y altura ≤ 2·log₂(n+1)).

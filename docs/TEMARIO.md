@@ -10,6 +10,14 @@ Análisis previo a la programación. Fuente principal: los PDF de clase del prof
 | **S6-C1** | Clase1_ArbolesRecorridos | 27 | Niveles 4 y 5 |
 | **S6-C2** | Clase2_BST | 20 | Nivel 6 |
 | **S7-C1** | Clase1_BalanceoAVL | 49 (completo) | Nivel 7: AVL (d.1-21, 34-39, código 42-44) y rojo-negro (d.22-33, código 45-49) |
+| **S1-C1** | Clase1_TiposDatosAbstractos | — | Nivel 9 (estructura de datos, clasificación, TAD, axiomas, implementaciones) |
+| **S1-C2** | Clase2_MemoriaEstaticaDinamica | — | Nivel 9 (pila y montículo, memoria estática y dinámica, referencias, copias, caché) |
+| **S3-C1** | Clase1_Arrays | — | Nivel 10 (arreglo, prefijos, Kadane, dos punteros, ventana, merge intervals) |
+| **S3-C2** | Clase2_Pilas | — | Nivel 11 (pila, balanceo de símbolos, pila monótona) |
+| **S4-C1** | Clase1_ColasDeques | — | Nivel 11 (cola, deque, cola circular) |
+| **S4-C2** | Clase2_ListasEnlazadas | 24 | Nivel 12 (lista simple y doble, insertar, eliminar, Floyd) |
+| **S7-C2** | Clase2_HeapsColasPrioridad | — | Nivel 13 (heap min/max, bubble up/down, heapify, cola de prioridad, top-k, heapsort) |
+| **AP-S3-C1** | Clase1_Condicionales (Algoritmos y Programación 41333) | — | Nivel 14 (booleanas, if/elif/else, anidados, ternario) |
 
 > Los dos PDF de S2 no estaban en tu lista, pero están en la misma carpeta y el Nivel 2 (Big O) casi no tiene
 > contenido en los 4 adjuntos; los usé solo para alinear la terminología de ese nivel.
@@ -83,6 +91,31 @@ Conceptos de rojo-negro: `rn_def` (reglas, altura negra) · `rn_ins` (3 casos) �
 
 ### Nivel 8 — Retos integradores
 Combinan 1-7: elegir paradigma + complejidad, depurar recursión, BST→AVL, justificar decisiones, análisis completo de un algoritmo (preguntas "mixtas").
+
+## Niveles libres 9-14 (resto de las diapositivas y condicionales)
+
+Siempre desbloqueados: el avance y el umbral de la ruta principal solo cuentan los niveles 1-8. Cada nivel tiene su laboratorio animado y su banco (`js/banco_ext*.js`).
+
+### Nivel 9 — TAD y memoria (S1-C1, S1-C2)
+`td_ed` (dato, tipo y estructura) · `td_clasif` (lineales/no lineales, estáticas/dinámicas) · `td_tad` (dominio, operaciones, reglas) · `td_axiomas` (pila, cola, conjunto) · `td_impl` (interfaz con ABC; ConjuntoLista frente a ConjuntoHash) · `td_memoria` (pila y montículo) · `td_estdin` (asignación estática y dinámica; `dir = base + i × tam`) · `td_ref` (referencias, alias, mutabilidad) · `td_copia` (copia superficial y profunda; argumento por defecto mutable) · `td_cache` (list frente a ndarray, localidad de caché).
+
+### Nivel 10 — Arreglos y técnicas (S3-C1)
+`ay_def` (tabla de operaciones) · `ay_pref` (prefijos) · `ay_kad` (Kadane) · `ay_dos` (dos punteros) · `ay_ven` (ventana deslizante) · `ay_int` (merge intervals y elección de la técnica).
+
+### Nivel 11 — Pilas y colas (S3-C2, S4-C1)
+`pc_pila` (LIFO) · `pc_apps` (aplicaciones y balanceo) · `pc_mon` (pila monótona) · `pc_cola` (FIFO; por qué `list` es mala cola) · `pc_deque` (`collections.deque` y cola de prioridad) · `pc_circ` (cola circular con módulo).
+
+### Nivel 12 — Listas enlazadas (S4-C2)
+`le_nodo` (nodo y lista simple) · `le_ins` (insertar; el orden de los enlaces) · `le_del` (puentear un nodo) · `le_vs` (arreglo frente a lista enlazada) · `le_doble` (lista doble) · `le_floyd` (ciclos con la liebre y la tortuga).
+
+### Nivel 13 — Heaps y colas de prioridad (S7-C2)
+`hp_def` (árbol completo con orden parcial) · `hp_arr` (índices `2i+1`, `2i+2`, `(i−1)//2`) · `hp_subir` (bubble up) · `hp_bajar` (bubble down) · `hp_build` (heapify en O(n); *complemento*: la demostración) · `hp_pq` (cola de prioridad, tabla de operaciones, `heapq`) · `hp_topk` (top-k, heapsort, usos en IA). El nivel 13 entra en el parcial simulado.
+
+### Nivel 14 — Condicionales (Algoritmos y Programación, AP-S3-C1)
+`cd_bool` (expresiones booleanas, tablas de verdad) · `cd_if` (if, if-else, if-elif-else) · `cd_anid` (anidados, aplanado, operador ternario). *Complemento*: las leyes de De Morgan se usan para aplanar condiciones y se marcan como tal.
+
+### Quiz a mi medida
+Ruta `#/examen/config/quiz`: el usuario elige temas de la Biblioteca (y por tanto sus conceptos) y la mezcla de modalidades. **Teoría** = selección, V/F, abiertas; **interacción** = clasificar, ordenar, árboles/rotaciones y toda pregunta con figura o animación; **práctica** = el resto (código, salidas, tablas, complejidad). Los talleres de arrastrar nodos quedan fuera (son solo de práctica).
 
 ## Modelo de parcial del profesor (analizado del Parcial 1, semanas 1–4)
 

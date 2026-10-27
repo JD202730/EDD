@@ -26,7 +26,7 @@
     const hero = h('section', { class: 'card hero' },
       h('div', { class: 'fila sep' },
         h('div', { style: { maxWidth: '620px' } }, h('h1', { text: 'Estructuras de Datos: entrena, mide y domina' }),
-          h('p', { text: 'Recursión, Big O, paradigmas, árboles, BST y AVL con ejercicios que se corrigen de verdad: se ejecuta tu código y se verifican tus árboles.' })),
+          h('p', { text: 'Recursión, Big O, paradigmas, árboles, BST, AVL, rojo-negro, heaps, listas, pilas, colas y arreglos, con ejercicios que se corrigen de verdad y animaciones paso a paso en el Laboratorio.' })),
         h('div', { class: 'fila' }, Vc.anillo(prog, '#fff'))));
     const statsRow = h('div', { class: 'grid g4 espacio', style: { position: 'relative', zIndex: 1 } },
       [['Progreso global', Math.round(prog * 100) + ' %'], ['Respuestas correctas', pct(st.pctCorrectas)], ['Nivel ' + nj.nivel + ' · XP', st.xp], ['Racha (días)', st.racha]].map(([t, v]) => h('div', { class: 'stat' }, h('b', { text: String(v) }), h('span', { style: { color: 'rgba(255,255,255,.85)' }, text: t }))));
@@ -56,7 +56,13 @@
 
     // niveles
     host.appendChild(h('h2', { class: 'espacio', text: 'Ruta de aprendizaje' }));
-    host.appendChild(h('div', { class: 'niveles' }, Tm.niveles.map(tarjetaNivel)));
+    host.appendChild(h('div', { class: 'niveles' }, Tm.niveles.filter(l => !l.libre).map(tarjetaNivel)));
+    const libres = Tm.niveles.filter(l => l.libre);
+    if (libres.length) {
+      host.appendChild(h('h2', { class: 'espacio', text: libres[0].grupo || 'Más temas' }));
+      host.appendChild(h('p', { class: 'peq suave', text: 'El resto de las diapositivas del curso: TAD y memoria, arreglos, pilas y colas, listas enlazadas, heaps y condicionales. No dependen de los niveles anteriores (siempre están abiertos). Cada tema tiene animaciones en el Laboratorio.  Progreso: ' + Math.round(M.progresoExtra() * 100) + ' %.' }));
+      host.appendChild(h('div', { class: 'niveles' }, libres.map(tarjetaNivel)));
+    }
     host.appendChild(h('p', { class: 'peq tenue', text: 'Cada nivel tiene 3 etapas (A Fundamentos · B Aplicación · C Dominio). Se desbloquea la siguiente al alcanzar ' + M.config().umbral + ' % de dominio en las últimas 10 preguntas (mínimo 5). El umbral se cambia en Ajustes.' }));
 
     // reforzar + actividad
@@ -90,6 +96,8 @@
       [['Preguntas en práctica', st.respondidas], ['Correctas al primer intento', pct(st.pctCorrectas)], ['Correctas sin pistas', pct(st.pctSinPistas)], ['Pistas usadas', st.pistas], ['Aciertos en exámenes', pct(st.exPct)], ['Preguntas de examen', st.exRespondidas], ['Errores pendientes', st.erroresAbiertos], ['Exámenes', st.examenes]].map(([t, v]) => h('div', { class: 'stat' }, h('b', { text: String(v) }), h('span', { text: t }))))));
   };
 
+  /** laboratorio animado de cada nivel de estructuras: [pestaña del lab, texto] */
+  const LAB_NIVEL = { 7: ['rn', 'árbol rojo-negro'], 9: ['memoria', 'memoria y referencias'], 10: ['arreglos', 'arreglos y técnicas'], 11: ['pilas', 'pilas y colas'], 12: ['listas', 'listas enlazadas'], 13: ['heap', 'heaps'] };
   V.nivel = function (host, args) {
     const n = +args[0]; const l = Tm.niveles[n - 1]; if (!l) { location.hash = '#/panel'; return; }
     const desb = M.nivelDesbloqueado(n);
@@ -113,7 +121,7 @@
         h('div', { class: 'acciones' }, h('a', { class: 'btn' + (des ? '' : ' sec'), href: des ? '#/practica/' + n + '/' + e : '#/nivel/' + n, 'aria-disabled': des ? null : 'true', onclick: ev => { if (!des) { ev.preventDefault(); Vc.toast('Primero completa la etapa anterior (≥ ' + M.config().umbral + ' %).'); } } }, des ? 'Practicar' : 'Bloqueada'))));
     });
     host.appendChild(g);
-    host.appendChild(h('div', { class: 'acciones' }, h('a', { class: 'btn sec', href: '#/examen/config/nivel-' + n }, '⏱ Examen de este nivel'), h('a', { class: 'btn sec', href: '#/teoria/' + n }, '📖 Teoría completa'), (ET.Biblioteca ? ET.Biblioteca.areas.filter(x => x.nivel === n && ET.Biblioteca.temasDeArea(x.id).length).map(a => h('a', { class: 'btn sec', href: '#/biblioteca/area/' + a.id }, '📚 Biblioteca: ' + a.nombre)) : null), (n === 6 || n === 7) ? h('a', { class: 'btn sec', href: '#/lab/taller' }, '✋ Taller interactivo (mover nodos)') : null));
+    host.appendChild(h('div', { class: 'acciones' }, h('a', { class: 'btn sec', href: '#/examen/config/nivel-' + n }, '⏱ Examen de este nivel'), h('a', { class: 'btn sec', href: '#/teoria/' + n }, '📖 Teoría completa'), (ET.Biblioteca ? ET.Biblioteca.areas.filter(x => x.nivel === n && ET.Biblioteca.temasDeArea(x.id).length).map(a => h('a', { class: 'btn sec', href: '#/biblioteca/area/' + a.id }, '📚 Biblioteca: ' + a.nombre)) : null), (n === 6 || n === 7) ? h('a', { class: 'btn sec', href: '#/lab/taller' }, '✋ Taller interactivo (mover nodos)') : null, LAB_NIVEL[n] ? h('a', { class: 'btn sec', href: '#/lab/' + LAB_NIVEL[n][0] }, '🧪 Laboratorio animado: ' + LAB_NIVEL[n][1]) : null, h('a', { class: 'btn sec', href: '#/examen/config/quiz?areas=' + encodeURIComponent((ET.Biblioteca ? ET.Biblioteca.areas.filter(x => x.nivel === n).map(x => x.id) : []).join(',')) }, '🎯 Quiz a mi medida')));
     // conceptos
     host.appendChild(h('h2', { class: 'espacio', text: 'Conceptos del nivel' }));
     const lista = h('div', { class: 'card' });

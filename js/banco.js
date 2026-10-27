@@ -34,7 +34,7 @@
   Banco.categoriaDe = function (t) {
     if (t._cat) return t._cat;
     const q = Banco.instanciar(t.id, 12345);
-    t._cat = ET.Tipos.categoria(q); t._tipo = q.tipo; t._fmt = ET.Tipos.formato(q);
+    t._cat = ET.Tipos.categoria(q); t._tipo = q.tipo; t._fmt = ET.Tipos.formato(q); t._vis = !!(q.figura || q.sim);   // figura o animación: pregunta «de interacción»
     return t._cat;
   };
 

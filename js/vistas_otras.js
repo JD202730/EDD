@@ -66,7 +66,8 @@
   V.lab = function (host, args, query) {
     const tab = args[0] || 'arboles';
     host.appendChild(h('h1', { text: 'Laboratorio' }));
-    host.appendChild(h('div', { class: 'tabs' }, [['arboles', '🌳 Árboles BST/AVL'], ['codigo', '💻 Código ↔ Árbol'], ['taller', '✋ Taller interactivo'], ['recursion', '↻ Pila de recursión'], ['consola', '⌨ Consola Python']].map(([k, t]) => h('a', { class: 'tab' + (k === tab ? ' act' : ''), href: '#/lab/' + k, text: t }))));
+    host.appendChild(h('div', { class: 'tabs' }, [['arboles', '🌳 Árboles BST/AVL'], ['codigo', '💻 Código ↔ Árbol'], ['taller', '✋ Taller interactivo'], ['listas', '🔗 Listas enlazadas'], ['pilas', '📚 Pilas y colas'], ['arreglos', '▦ Arreglos y técnicas'], ['heap', '⛰ Heaps'], ['rn', '● Rojo-negro'], ['memoria', '🧠 Memoria'], ['recursion', '↻ Pila de recursión'], ['consola', '⌨ Consola Python']].map(([k, t]) => h('a', { class: 'tab' + (k === tab ? ' act' : ''), href: '#/lab/' + k, text: t }))));
+    if (ET.LabEstructuras && ET.LabEstructuras[tab]) return ET.LabEstructuras[tab](host, query || {});
     if (tab === 'codigo') return labCodigo(host, query || {});
     if (tab === 'recursion') return labRecursion(host);
     if (tab === 'consola') return labConsola(host);

@@ -184,7 +184,9 @@ input[type=checkbox] ~ .op-marca { border-radius: 6px; }
 .ed-gut { margin: 0; padding: 10px 8px 10px 0; font: inherit; line-height: 21px; }
 .ed-area { position: relative; flex: 1; overflow: hidden; }
 .ed-hl, .ed-ta { position: absolute; inset: 0; margin: 0; padding: 10px 12px; border: 0; font: inherit; line-height: 21px; white-space: pre; tab-size: 4; letter-spacing: 0; word-spacing: 0; }
-.ed-hl { overflow: hidden; pointer-events: none; color: var(--code-fg); }
+.ed-hl { overflow: hidden; pointer-events: none; color: var(--code-fg); padding-right: 40px; padding-bottom: 40px; /* el textarea tiene barras y esta capa no: este margen iguala su rango de desplazamiento */ }
+/* la regla global «code» (.92em, relleno) encogía el resaltado ~8 % y el cursor real quedaba varios caracteres a su derecha */
+.ed-hl code { font: inherit; padding: 0; background: none; border-radius: 0; }
 .ed-ta { background: transparent; color: transparent; caret-color: var(--texto); resize: none; outline: none; overflow: auto; border-radius: 0; width: 100%; box-shadow: none !important; }
 .ed-ta::selection { background: color-mix(in srgb, var(--acento2) 35%, transparent); color: transparent; }
 .editor.bloqueado { opacity: .85; }
@@ -542,3 +544,21 @@ input[type=range] { height: 28px; cursor: pointer; }
 .quiz-tema.bloq { opacity: .55; cursor: default; }
 .quiz-nom { display: flex; flex-direction: column; flex: 1; min-width: 0; }
 .quiz-resumen { margin-top: 10px; padding: 10px 12px; border-radius: 12px; background: var(--acento-bg); }
+
+/* ---------- talleres interactivos de heap, rojo-negro, listas, pilas/colas y arreglos (taller_gen.js) ---------- */
+.taller-gen .tg-lienzo { margin: 0; }
+.taller-gen .esc-svg { user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+.taller-gen g.tg-act { cursor: pointer; } .taller-gen g.tg-fuente { cursor: grab; } .taller-gen g.tg-fuente:active { cursor: grabbing; }
+.taller-gen g.tg-act:focus { outline: none; }
+.taller-gen g.tg-act:focus-visible > circle:not(.esc-anillo), .taller-gen g.tg-act:focus-visible > rect { stroke: var(--acento); stroke-width: 5px; }
+.taller-gen g.tg-arrastrando { opacity: .35; }
+.taller-gen g.tg-fantasma { pointer-events: none; opacity: .92; }
+.taller-gen g.tg-fantasma circle:not(.esc-anillo), .taller-gen g.tg-fantasma rect { stroke: var(--acento); stroke-width: 3.4; }
+.esc-circ.pista circle:not(.esc-anillo), .esc-caja.pista rect, .esc-nodoL.pista rect, .esc-rect.pista rect { stroke: var(--aviso); stroke-width: 5; stroke-dasharray: 6 3; animation: latido 1s ease-in-out infinite; }
+.esc-circ.hueco circle:not(.esc-anillo) { fill: transparent; stroke: var(--tenue); stroke-width: 2; stroke-dasharray: 4 4; }
+.esc-circ.hueco .esc-t { fill: var(--tenue); font: 700 16px var(--sans); } .esc-circ.hueco .esc-s { fill: var(--tenue); }
+.esc-caja.hueco rect { fill: transparent; stroke: var(--tenue); stroke-dasharray: 4 4; } .esc-caja.hueco .esc-t { fill: var(--tenue); }
+.esc-caja.zona rect, .esc-rect.zona.drop rect { fill: color-mix(in srgb, var(--acento) 10%, transparent); stroke: var(--acento); stroke-dasharray: 5 4; } .esc-caja.zona .esc-t { fill: var(--acento); font-weight: 700; }
+.esc-caja.var rect { fill: var(--acento-bg); stroke: var(--acento); } .esc-caja.var .esc-t { fill: var(--acento); font: 700 12px var(--mono); }
+.tg-sol { margin-top: 8px; } .tg-sol .esc-svg { max-width: 100%; }
+@media (prefers-reduced-motion: reduce) { .esc-circ.pista circle, .esc-caja.pista rect, .esc-nodoL.pista rect { animation: none; } }

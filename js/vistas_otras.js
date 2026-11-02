@@ -70,11 +70,13 @@
     host.appendChild(tabsLab);
     const tabAct = tabsLab.querySelector('.act');   // en el celular las pestañas se desplazan: deja visible la activa
     if (tabAct && tabsLab.scrollWidth > tabsLab.clientWidth) tabsLab.scrollLeft = tabAct.getBoundingClientRect().left - tabsLab.getBoundingClientRect().left + tabsLab.scrollLeft - (tabsLab.clientWidth - tabAct.offsetWidth) / 2;
+    const TALLER_DE = { listas: 'lista', pilas: 'pc', arreglos: 'arr', heap: 'heap', rn: 'rn' };   // animación → su taller interactivo
+    if (TALLER_DE[tab] && ET.TallerLab) host.appendChild(h('p', { class: 'peq suave', style: { margin: '2px 0 10px' } }, 'Cuando entiendas la animación, ', h('a', { href: '#/lab/taller?f=' + TALLER_DE[tab] }, '✋ hazlo tú en el Taller interactivo'), ': tú mueves cada elemento y lo incorrecto no se acepta.'));
     if (ET.LabEstructuras && ET.LabEstructuras[tab]) return ET.LabEstructuras[tab](host, query || {});
     if (tab === 'codigo') return labCodigo(host, query || {});
     if (tab === 'recursion') return labRecursion(host);
     if (tab === 'consola') return labConsola(host);
-    if (tab === 'taller') return labTaller(host);
+    if (tab === 'taller') return labTaller(host, query || {});
     return labArboles(host);
   };
 
@@ -89,8 +91,11 @@
   }
 
   /* ===================== Laboratorio: taller interactivo (mover nodos) ===================== */
-  function labTaller(host) {
-    host.appendChild(h('p', { class: 'suave', html: U.mdInline('Resuelve **tú** la operación moviendo los nodos: colocas el nodo nuevo, detectas el nodo desbalanceado, clasificas el desbalance y aplicas cada rotación arrastrando un hijo sobre su padre. En modo estricto, lo que esté mal **no se acepta** y el árbol no cambia.') }));
+  function labTaller(host, query) {
+    const fam = (query && query.f) || 'arbol';
+    if (fam !== 'arbol' && ET.TallerLab && ET.TallerGen.familias[fam]) return ET.TallerLab.montar(host, fam);   // heap, rojo-negro, lista, pilas/colas, arreglos (taller_lab.js)
+    if (ET.TallerLab) host.appendChild(ET.TallerLab.selector('arbol'));
+    host.appendChild(h('p', { class: 'suave', style: { marginTop: '12px' }, html: U.mdInline('Resuelve **tú** la operación moviendo los nodos: colocas el nodo nuevo, detectas el nodo desbalanceado, clasificas el desbalance y aplicas cada rotación arrastrando un hijo sobre su padre. En modo estricto, lo que esté mal **no se acepta** y el árbol no cambia.') }));
     const MAX_OPS = 60, MAX_NODOS = 60;   // sin tope práctico: puedes meter muchos valores (más de 12) y operaciones
     const PRESETS = [
       ['Caso LL', 'avl', '30(20,)', '10'], ['Caso RR', 'avl', '10(,20)', '30'], ['Caso LR', 'avl', '30(10,)', '20'], ['Caso RL', 'avl', '10(,30)', '20'],

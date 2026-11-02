@@ -199,5 +199,7 @@
 
   const nuevo = () => ({ raiz: null, sigId: 1 });
   function desde(valsOps) { let m = nuevo(); valsOps.forEach(v => { m = insertar(m, v).modelo; }); return m; }
-  Sim.rn = { cuadro: (modelo, msg) => aCuadros([{ arbol: modelo.raiz, msg }])[0], nuevo, desde, insertar, eliminar, nota, valores, valida, tam, escena: (modelo) => { const dims = { W: 560, H: 300 }; return items({ arbol: modelo.raiz }, dims); }, codigoRN };
+  /** rotación sobre una copia mutable (la usa el taller interactivo, que valida cada giro contra el algoritmo) */
+  const rotarT = (T, x, lado) => rotar(T, x, lado, { rotado() { }, snap() { } });
+  Sim.rn = { layout, items, construir, aPlano, copiaPlano, rotarT, SX, TY, X0, Y0, R, cuadro: (modelo, msg) => aCuadros([{ arbol: modelo.raiz, msg }])[0], nuevo, desde, insertar, eliminar, nota, valores, valida, tam, escena: (modelo) => { const dims = { W: 560, H: 300 }; return items({ arbol: modelo.raiz }, dims); }, codigoRN };
 })(typeof window !== 'undefined' ? window : globalThis);

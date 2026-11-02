@@ -421,6 +421,7 @@
   };
   /** dibuja los árboles "sol" (data-nota) dentro de un contenedor */
   Tipos.hidratar = function (root) {
+    if (ET.TallerGen) ET.TallerGen.hidratar(root);   // figuras finales de los talleres de heap, rojo-negro, listas, pilas/colas y arreglos
     U.$$('.arbol-draw.sol', root).forEach(d => {
       if (d.dataset.hid) return; d.dataset.hid = '1';
       try { Arb.dibujar(d, Arb.parse(d.dataset.nota), { compacto: true, etiquetas: d.dataset.etq }); } catch (e) { d.textContent = d.dataset.nota; }

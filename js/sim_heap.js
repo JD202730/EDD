@@ -219,5 +219,5 @@
     return { frames: F };
   }
 
-  Sim.heap = { cuadro: (m, msg) => cuadro({ tipo: m.tipo, a: m.a, capN: m.a.length, capArr: m.a.length, titulo: (m.tipo === 'max' ? 'Max-heap' : 'Min-heap') + ' · la raíz es el ' + nombre(m.tipo) }, msg), nuevo, copia, valores, esHeap, mejor, insertar, extraer, construir, heapsort, topk, navegar, codigo, escena: S => itemsHeap(S).items };
+  Sim.heap = { dibujo: itemsHeap, pos: posNodo, niveles, R, cuadro: (m, msg) => cuadro({ tipo: m.tipo, a: m.a, capN: m.a.length, capArr: m.a.length, titulo: (m.tipo === 'max' ? 'Max-heap' : 'Min-heap') + ' · la raíz es el ' + nombre(m.tipo) }, msg), nuevo, copia, valores, esHeap, mejor, insertar, extraer, construir, heapsort, topk, navegar, codigo, escena: S => itemsHeap(S).items };
 })(typeof window !== 'undefined' ? window : globalThis);

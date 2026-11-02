@@ -440,11 +440,12 @@
   Tipos.taller = {
     render(host, q, ctx) {
       Tipos.cabecera(host, q, ctx);
-      host.appendChild(h('div', { class: 'ayuda-formato', html: U.mdInline('**Modo estricto:** si tu movimiento no es correcto **no se acepta**, el árbol no cambia y no se muestra el resultado: inténtalo de nuevo. Puedes arrastrar con el mouse/dedo o tocar el nodo y usar los botones. Las pistas del ejercicio están dentro del taller (cuestan puntos).') }));
+      const gen = !!q.taller.familia;   // heap, rojo-negro, listas, pilas/colas y arreglos usan el motor genérico (taller_gen.js)
+      host.appendChild(h('div', { class: 'ayuda-formato', html: U.mdInline(gen ? '**Modo estricto:** si tu movimiento no es correcto **no se acepta**, la estructura no cambia y hay que intentarlo otra vez. Arrastra un elemento sobre otro, o toca uno y luego el otro; cuando el paso lo pide hay botones debajo. Las pistas del ejercicio están dentro del taller (cuestan puntos).' : '**Modo estricto:** si tu movimiento no es correcto **no se acepta**, el árbol no cambia y no se muestra el resultado: inténtalo de nuevo. Puedes arrastrar con el mouse/dedo o tocar el nodo y usar los botones. Las pistas del ejercicio están dentro del taller (cuestan puntos).') }));
       const caja = h('div'); host.appendChild(caja);
       const cfg = Object.assign({}, q.taller, { onError: (info) => { if (ET.Motor && ET.Motor.registrarConfusion && info && info.confusion) ET.Motor.registrarConfusion(info.confusion.dado, info.confusion.correcta); } });
       if (ctx && ctx.sinAnimar) cfg.sinAnimar = true;
-      const w = Taller.montar(caja, cfg); const cbs = [];
+      const w = (gen ? ET.TallerGen.montar : Taller.montar)(caja, cfg); const cbs = [];
       w.onCompletar(r => cbs.forEach(f => f(r)));
       return {
         getAnswer: () => w.resultado(),
@@ -467,6 +468,7 @@
     },
     solve(q) { return { fin: true, fallos: 0, pistas: 0 }; },
     solucionHtml(q) {
+      if (q.taller.familia) return ET.TallerGen.solucionHtml(q);
       const nota = Arb.nota(q.taller.finalEsperado);
       return '<p>Procedimiento correcto:</p>' + resolucionHtml(q) + '<div class="arbol-draw sol" data-nota="' + U.esc(nota) + '" data-etq="' + (q.taller.tipo === 'avl' ? 'factor' : '') + '"></div>';
     },

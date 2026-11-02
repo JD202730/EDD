@@ -51,7 +51,7 @@
   async function pruebaTaller(nSem) {
     nSem = nSem || 25; const fallos = []; let total = 0, rech = 0, pen = 0, fas = 0;
     const host = document.createElement('div'); host.style.cssText = 'position:absolute;left:-9999px;top:0;width:900px'; document.body.appendChild(host);
-    const T = ET.Banco.plantillas.filter(t => t.soloPractica);
+    const T = ET.Banco.plantillas.filter(t => t.soloPractica && !ET.Banco.instanciar(t.id, 1).taller.familia);   // los de heap, rojo-negro, listas, etc. los prueba taller_gen_test.js
     for (const t of T) {
       for (let s = 1; s <= nSem; s++) {
         const seed = 500 + s * 104729; total++;

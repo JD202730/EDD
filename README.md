@@ -52,6 +52,17 @@ colas, listas enlazadas, heaps (min/max) y condicionales**. El contenido sale de
   dentro del taller, cada una resta crédito). Funciona con mouse, dedo o teclado (tocar nodo + botones). Está en *Laboratorio →
   Taller interactivo* (con ejemplos y operaciones propias, p. ej. `10, 20, 30, 40, 50, 25` o `-30` para eliminar) y como
   ejercicios de práctica en los niveles 6 y 7 (no entran en los exámenes porque requieren arrastrar).
+* **Taller interactivo de las demás estructuras** (mismo modo estricto, mismas pistas de 3 niveles; *Laboratorio → Taller
+  interactivo*, selector de estructura): **heap** (min/max: colocar el elemento en la primera posición libre y *subirlo*;
+  sacar la raíz, llevar la última hoja a la raíz y *bajarla*; *heapify* eligiendo los nodos de derecha a izquierda),
+  **árbol rojo-negro** (colgar el nodo en rojo, elegir el caso —tío rojo / zigzag / línea recta—, recolorear tocando los nodos
+  y rotar arrastrando un hijo sobre su padre, raíz negra), **lista enlazada** (reasignar referencias en el orden correcto:
+  insertar al inicio / tras un nodo / al final y eliminar; si se mueve la cabeza antes de enlazar «se pierde el resto de la
+  lista»), **pilas, colas, deques y cola circular** (por qué extremo entra y sale cada elemento; casilla `(frente + tam) % C`)
+  y **arreglos** (desplazar en el orden correcto para insertar o eliminar y búsqueda binaria eligiendo `mid` y decidiendo
+  hacia dónde seguir). Las operaciones son propias (p. ej. `1, 7, x, build` en el heap; `ini 5, tras 20 7, -30` en la lista).
+  También hay 15 plantillas de práctica (niveles 3, 7, 10, 11, 12 y 13) y desde cada animación del laboratorio hay un enlace
+  «✋ hazlo tú en el Taller interactivo».
 * **Corrección real**: el código del estudiante **se ejecuta** contra pruebas; los árboles se verifican por estructura y
   propiedades (BST, AVL, inorden, alturas).
 * **Dos modos**: *Práctica guiada* (pistas progresivas, explicación de errores, dificultad adaptativa) y *Modo examen*
@@ -131,6 +142,10 @@ js/taller.js          taller interactivo de árboles (arrastrar nodos, fases, va
 js/banco.js           registro del banco y utilidades para escribir plantillas
 js/banco_n1.js … n8.js   plantillas de cada nivel
 js/banco_taller.js    plantillas de los talleres interactivos (solo práctica)
+js/taller_gen.js      motor genérico de los talleres de las demás estructuras (gestos: arrastrar / tocar-tocar / botones, validación estricta, pistas)
+js/taller_heap.js, taller_rn.js, taller_lineal.js   familias del motor: heap · rojo-negro · lista enlazada, pilas/colas y arreglos
+js/taller_lab.js      pantalla de configuración (Laboratorio → Taller interactivo → heap, rojo-negro, lista, pilas y colas, arreglos)
+js/banco_taller_ext.js  15 plantillas de práctica de esos talleres (solo práctica)
 js/banco_pq*.js       banco «tipo parcial»: V/F con justificación (pq), complejidades (pq_cplx), tablas (pq_tabla),
                       algoritmo en 4 literales (pq_alg) y programación con casos borde (pq_prog)
 js/banco_ext.js … ext3.js   niveles 9-14 (TAD y memoria, arreglos, pilas y colas, listas, heaps, condicionales) y preguntas con figura
@@ -185,7 +200,7 @@ Con la misma semilla una plantilla produce siempre la misma pregunta (así *Mis 
 | `clasificar` | `categorias`, `items:[{t, cat, why}]` |
 | `orden` | `items`, `correcto`, `inicial` |
 | `mixta` | `partes:[{titulo, peso, q:{…cualquier tipo…}}]` |
-| `taller` | `taller:{tipo:'avl'\|'bst', conv:'suc'\|'pred', arbol, ops:[{t:'ins',v}\|{t:'del',v}\|{t:'reb'}], finalEsperado}`, `pistasInternas:true` · ver `js/banco_taller.js`; la plantilla lleva `soloPractica:true` para quedar fuera de los exámenes |
+| `taller` | `taller:{tipo:'avl'\|'bst', conv:'suc'\|'pred', arbol, ops:[{t:'ins',v}\|{t:'del',v}\|{t:'reb'}], finalEsperado}`, `pistasInternas:true` · ver `js/banco_taller.js`; la plantilla lleva `soloPractica:true` para quedar fuera de los exámenes. Las demás estructuras usan `taller:{familia:'heap'\|'rn'\|'lista'\|'pc'\|'arr', vals, ops, …, finalEsperado}` (texto del estado final) · ver `js/banco_taller_ext.js` y `js/taller_gen.js` |
 | `vfj` | `afirmacion`, `correcta`, `justif:{criterios:[{desc, claves}], modelo}`, `pesoMarca` (0,3 por defecto: la justificación vale más que la marca) |
 | `cplx` | `esperado:{clase, variable, caso, regla}`, `escala`, `variables`, `reglasOpc`, `justif`, `medir` (la prueba mide los pasos para verificar la clase) |
 | `tabla` + `cx:true` | las celdas se comparan como complejidades: `O(n²)`=`O(n^2)`, `O(n log n)`=`n*log n`; «amortizado» debe escribirse cuando la celda lo pide |
@@ -216,6 +231,12 @@ niveles están en la lista `niveles` del mismo archivo.
   intenta primero un movimiento incorrecto (784 rechazos: el árbol no cambió ni avanzó la fase) y luego el correcto; el resultado
   final coincide con el AVL/BST calculado por el motor. Además se probaron a mano, con arrastre real del mouse, la inserción
   con rotación doble (LR), la eliminación con dos hijos, la papelera y el modo táctil (375 px, sin desbordes).
+* **Talleres de heap, rojo-negro, listas, pilas/colas y arreglos** (`pruebas/taller_gen_test.js`, mismo botón «Talleres
+  interactivos»): 15 plantillas × 40 semillas (600 ejercicios) resueltos paso a paso por un robot que antes de cada acierto
+  intenta un movimiento incorrecto (el estado no cambia ni avanza el paso) y cuenta pistas; más 460 ejercicios aleatorios
+  comparados con una referencia independiente (`Sim.heap`, `Sim.rn` —mismo árbol y mismos colores— y simulaciones con arreglos
+  de JavaScript): 6 264 pasos correctos, 6 181 movimientos incorrectos rechazados, 0 fallos. Se probaron además a mano, con
+  arrastre real del mouse y toque-toque, en escritorio y a 375 px.
 * **Banco «tipo parcial»** (74 plantillas nuevas): todas las plantillas `pq-*` se instancian con varias semillas; la solución
   de referencia puntúa 100 %, la respuesta en blanco no, el tipo se renderiza y completa su ciclo, y **la solución lenta
   (O(n²)/exponencial) de cada pregunta de código puntúa ≈ 50 %**. Además, **60 complejidades se midieron con el intérprete**

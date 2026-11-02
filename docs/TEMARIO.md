@@ -155,6 +155,7 @@ reproduce el entrenador:
 | V/F con justificación escrita | `vfj` | marca (30 %) + criterios de la justificación (70 %), ajustables por el estudiante |
 | Complejidad con variable, caso y regla | `cplx` | clase, variable, caso y regla (selección) + justificación por criterios |
 | Taller interactivo de árboles | `taller` | movimientos validados fase por fase (modo estricto) |
+| Taller interactivo de heap, rojo-negro, listas, pilas/colas y arreglos | `taller` (`familia`) | arrastrar/tocar elementos, botones de decisión, validación estricta paso a paso; solo práctica |
 
 ## Distribución de la evaluación
 * **Teoría**: opcion, vf, abierta, clasificar. **Análisis y problemas**: salida, tabla, bigo, árboles, AVL. **Implementación**: codigo, completar, depurar.

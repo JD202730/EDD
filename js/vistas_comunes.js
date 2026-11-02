@@ -15,7 +15,7 @@
     const cerrar = () => { f.remove(); document.removeEventListener('keydown', esc); if (prevFoco && prevFoco.focus) prevFoco.focus(); if (opts.alCerrar) opts.alCerrar(); };
     const esc = e => { if (e.key === 'Escape') cerrar(); };
     const x = h('button', { class: 'btn fantasma peq', 'aria-label': 'Cerrar', onclick: cerrar, text: '✕' });
-    const f = h('div', { class: 'modal-f', onclick: e => { if (e.target === f) cerrar(); } }, h('div', { class: 'modal', role: 'dialog', 'aria-modal': 'true', 'aria-label': titulo }, h('h2', null, h('span', { text: titulo }), x), contenido));
+    const f = h('div', { class: 'modal-f' + (opts.clase ? ' ' + opts.clase : ''), onclick: e => { if (e.target === f) cerrar(); } }, h('div', { class: 'modal', role: 'dialog', 'aria-modal': 'true', 'aria-label': titulo }, h('h2', null, h('span', { text: titulo }), x), contenido));
     document.body.appendChild(f); document.addEventListener('keydown', esc); x.focus();
     return { cerrar };
   };

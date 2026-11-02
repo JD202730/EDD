@@ -5,6 +5,14 @@ algorítmicos, árboles, recorridos, BST, AVL y rojo-negro** y, en los niveles 9
 colas, listas enlazadas, heaps (min/max) y condicionales**. El contenido sale de las diapositivas del profesor Jheyston Serrano
 (ver [`docs/TEMARIO.md`](docs/TEMARIO.md): temario organizado, convenciones del curso y qué es complemento).
 
+* **🗺️ Ruta de aprendizaje con juego** (pantalla *Aprender*): un mapa por unidades (los 14 niveles) con los nodos de cada una —etapas A, B y
+  C, **Reto del nivel** y **Examen del nivel**—; cada nodo muestra su estado real (bloqueado, disponible, en curso, completado) y abre una
+  hoja con lo que implica. Las prácticas son **lecciones de 10 ejercicios** con barra de progreso, retroalimentación inmediata y pantalla de
+  resultados. Hay **XP, racha diaria** (con escudos), **monedas** (que se gastan en la *Tienda*: escudos de racha, recarga de vidas y paletas de
+  color), **vidas** (solo en el Reto: 5, +1 cada 20 min), **23 logros** con progreso real y un **Perfil** con tus cifras. Nada de eso cambia
+  cómo se califica ni cómo se desbloquea el avance, y todo se guarda con el resto del progreso. Reglas y diseño en
+  [`docs/DISENO.md`](docs/DISENO.md). Tema claro (verde) y oscuro (grises cálidos + verde), menú lateral en escritorio y barra inferior en el teléfono,
+  animaciones que se apagan con «reducir movimiento».
 * **🎬 Animaciones paso a paso** (*Laboratorio*): lista enlazada simple y doble (insertar al inicio, al final y en una posición,
   eliminar, buscar, invertir, ciclos con la liebre y la tortuga), pilas (apilar, balanceo de símbolos, pila monótona), colas
   (`list.pop(0)` frente a `deque.popleft()`, deque y cola circular), arreglos (direcciones, prefijos, Kadane, dos punteros,
@@ -116,7 +124,9 @@ tendrás dos progresos separados: exporta/importa para pasarlos.
 ```
 index.html            aplicación
 pruebas.html          página de pruebas automáticas (ver más abajo)
-css/estilos.css       estilos (claro/oscuro, responsive)
+css/estilos.css       estilos base (claro/oscuro, responsive)
+css/juego.css         identidad visual: tokens de color (claro, oscuro, paletas), menú, mapa, lección, perfil, tienda y animaciones
+fonts/                Lexend (subconjunto latino, licencia OFL)
 js/util.js            RNG con semilla, DOM, almacenamiento, resaltado de Python
 js/pyparse.js         tokenizador y parser de un subconjunto de Python
 js/pyinterp.js        intérprete (recorrido del AST)
@@ -151,8 +161,13 @@ js/banco_pq*.js       banco «tipo parcial»: V/F con justificación (pq), compl
 js/banco_ext.js … ext3.js   niveles 9-14 (TAD y memoria, arreglos, pilas y colas, listas, heaps, condicionales) y preguntas con figura
                       y animación del rojo-negro; ayudas compartidas en `ET.BancoExt`
 js/banco_retiro.js    lista de preguntas «básicas» retiradas (siguen registradas pero no se sirven)
-js/motor.js           estado, dominio, desbloqueos, selección adaptativa, errores, exámenes, recomendaciones
-js/vistas_*.js, app.js   pantallas y enrutador
+js/motor.js           estado, dominio, desbloqueos, selección adaptativa, errores, exámenes, recomendaciones, racha y eventos (`M.on`)
+js/ui.js              iconos SVG, mascota «Nodo» y efectos (confeti, números flotantes, contraste automático por unidad)
+js/juego.js           monedas, vidas, escudos, meta diaria, logros, tienda y retos (`ET.Juego`; escucha los eventos del Motor)
+js/vistas_mapa.js     pantalla Aprender: mapa de unidades, nodos y hoja de información
+js/vistas_perfil.js   Perfil, Tienda y ventanas de logro
+js/vistas_practica.js lección de 10, Reto del nivel, repaso, reintento y resultados
+js/vistas_*.js, app.js   demás pantallas y enrutador (menú lateral / barra inferior)
 docs/TEMARIO.md       análisis de los PDF y temario organizado
 pruebas/              snippets, arneses y scripts de comparación con CPython
 ```
@@ -227,6 +242,11 @@ niveles están en la lista `niveles` del mismo archivo.
 * **Intérprete de Python** (el que ejecuta el código del estudiante): 58 fragmentos (aritmética con int/float, cadenas,
   listas, dicts, comprensiones, f-strings, clases y herencia, excepciones, `lru_cache`, `deque`, recursión, errores de
   ejecución…) comparados **tal cual contra CPython 3.12**: salida estándar y tipo de excepción idénticos.
+* **Juego y progreso** (`pruebas/juego_test.js`, botón «Juego» de `pruebas.html`): 61 comprobaciones de las reglas —monedas, vidas y su
+  recarga, racha con escudos y fechas locales, premios por ejercicio/lección/etapa/nivel/reto/examen, 23 logros, tienda y paletas (con la
+  migración de «Bosque» a «Uva»), persistencia y lectura de progreso guardado antes de existir el juego—; hace copia del progreso y la
+  restaura al terminar. La interfaz se recorrió a mano en claro y oscuro, a 1 280 px y a 375 px (sin desbordes horizontales), con teclado, y las 18
+  pantallas principales cargan sin errores.
 * **Talleres interactivos:** 6 plantillas × 25 semillas (150 ejercicios) resueltos fase por fase por un robot: en cada fase se
   intenta primero un movimiento incorrecto (784 rechazos: el árbol no cambió ni avanzó la fase) y luego el correcto; el resultado
   final coincide con el AVL/BST calculado por el motor. Además se probaron a mano, con arrastre real del mouse, la inserción

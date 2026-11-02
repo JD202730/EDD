@@ -13,7 +13,7 @@
   };
 
   const niveles = [
-    { id: 1, nombre: 'Fundamentos de recursión', icono: '↻', color: '#6366f1', fuente: 'S5-C2', resumen: 'Caso base, fórmula recursiva, pila de llamadas, trazas, errores típicos y número de llamadas.' },
+    { id: 1, nombre: 'Fundamentos de recursión', icono: '↻', color: '#3b82f6', fuente: 'S5-C2', resumen: 'Caso base, fórmula recursiva, pila de llamadas, trazas, errores típicos y número de llamadas.' },
     { id: 2, nombre: 'Complejidad y Big O', icono: '∿', color: '#0ea5e9', fuente: 'S2-C1 · S2-C2', resumen: 'Conteo de operaciones, O/Ω/Θ, reglas de cálculo, ciclos, costos de Python y complejidad espacial.' },
     { id: 3, nombre: 'Paradigmas algorítmicos', icono: '◇', color: '#10b981', fuente: 'S5-C2', resumen: 'Fuerza bruta, backtracking, greedy, divide y vencerás, programación dinámica y memoización.' },
     { id: 4, nombre: 'Fundamentos de árboles', icono: '⌥', color: '#84cc16', fuente: 'S6-C1', resumen: 'Definición, vocabulario, profundidad y altura, tipos de árboles binarios, nodos en Python.' },

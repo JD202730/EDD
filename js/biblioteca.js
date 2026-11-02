@@ -19,7 +19,7 @@
   ];
 
   B.areas = [
-    { id: 'rec', nombre: 'Recursión', icono: '↻', color: '#6366f1', nivel: 1, fuente: 'S5-C2', desc: 'Caso base, fórmula recursiva, pila de llamadas, el costo exponencial de la recursión ingenua y cómo la memoización lo vuelve lineal.' },
+    { id: 'rec', nombre: 'Recursión', icono: '↻', color: '#3b82f6', nivel: 1, fuente: 'S5-C2', desc: 'Caso base, fórmula recursiva, pila de llamadas, el costo exponencial de la recursión ingenua y cómo la memoización lo vuelve lineal.' },
     { id: 'cx', nombre: 'Complejidad y notación asintótica', icono: '∿', color: '#0ea5e9', nivel: 2, fuente: 'S2-C1 · S2-C2', desc: 'Modelo de costo, conteo de operaciones T(n), mejor/peor/promedio, O, Ω y Θ con sus demostraciones, reglas de cálculo, ciclos con log n, costos reales de Python y complejidad espacial.' },
     { id: 'pd', nombre: 'Paradigmas algorítmicos', icono: '◇', color: '#10b981', nivel: 3, fuente: 'S5-C2', desc: 'Fuerza bruta, backtracking, greedy, divide y vencerás y programación dinámica: qué resuelve cada uno, cuándo falla y cómo elegir.' },
     { id: 'ar', nombre: 'Fundamentos de árboles', icono: '⌥', color: '#84cc16', nivel: 4, fuente: 'S6-C1', desc: 'Definición de árbol, vocabulario, profundidad y altura, subárboles, árboles binarios (lleno, completo, perfecto) y el nodo en Python.' },

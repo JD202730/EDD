@@ -9,7 +9,12 @@
   const PISTA_F = [1, 0.85, 0.7, 0.5];
   const CASO_TPLS = ['n7-caso-3', 'n7-primer-nodo', 'n7-rotacion-arbol', 'n7-taller-insercion'];
   const kEt = (n, e) => 'N' + n + e;
-  const hoy = () => new Date().toISOString().slice(0, 10);
+  /** fecha LOCAL (AAAA-MM-DD): con toISOString() el «día» cambiaba a las 7 p. m. en Colombia (UTC−5) y rompía la racha */
+  const fechaLocal = d => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  const hoy = () => fechaLocal(new Date());
+  const diasEntre = (a, b) => Math.round((Date.parse(b + 'T00:00:00') - Date.parse(a + 'T00:00:00')) / 864e5);
+  const oyentes = [];
+  const emitir = (tipo, datos) => oyentes.forEach(f => { try { f(tipo, datos); } catch (e) { console.error(e); } });
 
   const vacio = () => ({
     v: 1, creado: Date.now(),
@@ -33,6 +38,9 @@
   const M = ET.Motor = {};
   M.estado = () => E;
   M.guardar = guardar;
+  M.hoy = hoy; M.fechaLocal = fechaLocal; M.diasEntre = diasEntre;
+  /** suscripción a los eventos del Motor: 'practica', 'examen', 'racha' (los usa ET.Juego para monedas, logros y meta diaria) */
+  M.on = f => { oyentes.push(f); };
   M.reiniciar = () => { E = vacio(); guardar(); };
   M.exportar = () => JSON.stringify(E, null, 1);
   M.importar = (txt) => { const s = JSON.parse(txt); if (!s || s.v !== 1) throw new Error('Archivo de progreso no válido'); E = Object.assign(vacio(), s); guardar(); };
@@ -91,16 +99,30 @@
   M.stats = () => {
     const s = E.stats;
     return {
-      respondidas: s.resp, pctCorrectas: s.resp ? s.ok1 / s.resp : null, pctSinPistas: s.resp ? s.sinPistas / s.resp : null, pistas: s.pistas, xp: E.xp, racha: E.racha.dias,
+      respondidas: s.resp, pctCorrectas: s.resp ? s.ok1 / s.resp : null, pctSinPistas: s.resp ? s.sinPistas / s.resp : null, pistas: s.pistas, xp: E.xp, racha: M.rachaVigente().dias,
       exRespondidas: s.exResp, exPct: s.exResp ? s.exOk / s.exResp : null, erroresAbiertos: Object.values(E.errores).filter(e => !e.resuelto).length, examenes: E.examenes.length
     };
   };
   M.nivelJugador = () => ({ nivel: Math.floor(Math.sqrt(E.xp / 60)) + 1, sig: Math.pow(Math.floor(Math.sqrt(E.xp / 60)) + 1, 2) * 60, ant: Math.pow(Math.floor(Math.sqrt(E.xp / 60)), 2) * 60 });
+  /** cuenta el día de hoy en la racha; un escudo de racha (Tienda) cubre un día sin practicar por escudo */
   function tocarRacha() {
     const h = hoy(); if (E.racha.ultimo === h) return;
-    const ayer = new Date(Date.now() - 864e5).toISOString().slice(0, 10);
-    E.racha.dias = E.racha.ultimo === ayer ? E.racha.dias + 1 : 1; E.racha.ultimo = h;
+    let dias = 1, escudo = 0;
+    if (E.racha.ultimo) {
+      const faltaron = diasEntre(E.racha.ultimo, h) - 1, escudos = (E.juego && E.juego.escudos) || 0;
+      if (faltaron <= 0) dias = E.racha.dias + 1; else if (faltaron <= escudos) { dias = E.racha.dias + 1; escudo = faltaron; }
+    }
+    E.racha.dias = dias; E.racha.ultimo = h; emitir('racha', { dias, escudo });
   }
+  /** racha que se muestra: si pasaron días sin practicar (y no hay escudos que los cubran) vale 0, no la cifra vieja */
+  M.rachaVigente = function () {
+    const h = hoy(), u = E.racha.ultimo; if (!u) return { dias: 0, hoyHecha: false, enRiesgo: false, protegida: false };
+    if (u === h) return { dias: E.racha.dias, hoyHecha: true, enRiesgo: false, protegida: false };
+    const faltaron = diasEntre(u, h) - 1, escudos = (E.juego && E.juego.escudos) || 0;
+    if (faltaron <= 0) return { dias: E.racha.dias, hoyHecha: false, enRiesgo: true, protegida: false };
+    if (faltaron <= escudos) return { dias: E.racha.dias, hoyHecha: false, enRiesgo: true, protegida: true };
+    return { dias: 0, hoyHecha: false, enRiesgo: false, protegida: false };
+  };
 
   /* ============ registro de resultados ============ */
   /** info: {pistas, fallosPrevios, resuelta, verSolucion, ms, resp} */
@@ -125,9 +147,11 @@
     if (ob.malas >= 2) { ob.obj = Math.max(RANGO[q.etapa][0], ob.obj - 0.5); ob.malas = 0; }
     // resolver error pendiente si era un reintento
     const ek = q.tplId + ':' + q.seed; if (E.errores[ek] && resuelta) { E.errores[ek].aciertos = (E.errores[ek].aciertos || 0) + 1; E.errores[ek].intentos.push({ t: Date.now(), modo: 'practica', ok: true }); if (!info.pistas) E.errores[ek].resuelto = true; }
-    guardar();
     const despues = M.etapaCompleta(q.nivel, q.etapa);
-    return { credito, xp, etapaNueva: !antes && despues, nivelNuevo: !antes && despues && q.etapa === 'C' };
+    const salida = { credito, xp, etapaNueva: !antes && despues, nivelNuevo: !antes && despues && q.etapa === 'C' };
+    emitir('practica', { q, res, info, resuelta, xp, credito, etapaNueva: salida.etapaNueva, nivelNuevo: salida.nivelNuevo });   // antes de guardar: el juego se guarda en la misma escritura
+    guardar();
+    return salida;
   };
   M.registrarError = function (q, resp, res, modo) {
     const key = q.tplId + ':' + q.seed; const mod = Tipos.mod(q);
@@ -323,8 +347,9 @@
       if (!r.ok) M.registrarError(q, entry.resp ? entry.resp[i] : null, r, 'examen');
       E.historial.push({ t: Date.now(), modo: 'examen', tpl: q.tplId, seed: q.seed, ok: !!r.ok, score: +r.score.toFixed(2), pistas: 0, ms: 0, n: q.nivel, e: q.etapa });
     });
-    E.stats.exResp += qs.length; E.stats.exOk += ok; E.xp += Math.round(entry.puntaje / 100 * qs.length * 8); tocarRacha();
-    E.examenActivo = null; guardar();
+    const xpEx = Math.round(entry.puntaje / 100 * qs.length * 8);
+    E.stats.exResp += qs.length; E.stats.exOk += ok; E.xp += xpEx; tocarRacha();
+    E.examenActivo = null; emitir('examen', { entry, xp: xpEx }); guardar();
     return entry;
   };
   M.actualizarExamen = (id, patch) => { const x = M.examenPorId(id); if (x) { Object.assign(x, patch); guardar(); } };

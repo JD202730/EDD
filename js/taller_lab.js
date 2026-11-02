@@ -101,16 +101,26 @@
         cfg.ops = F.leerOps(inOps.value, cfg);
         if (!cfg.ops.length) throw new Error('Escribe al menos una operación.');
         if (cfg.ops.length > C.ops.max) throw new Error('Usa hasta ' + C.ops.max + ' operaciones por ejercicio (son ' + cfg.ops.length + ').');
+        const avisos = [];
+        if (fam === 'heap' && cfg.vals.length > 1 && cfg.ops[0].t !== 'build' && !ET.Sim.heap.esHeap(F.iniciar(cfg).a, cfg.tipo)) {   // como en el AVL: se repara primero
+          cfg.ops.unshift({ t: 'build' }); avisos.push('El arreglo inicial no es un ' + (cfg.tipo === 'max' ? 'max' : 'min') + '-heap: primero se construye con heapify (operación «build»).');
+        }
+        if (cfg.ops.length > C.ops.max) throw new Error('Usa hasta ' + C.ops.max + ' operaciones por ejercicio.');
         let m = F.iniciar(cfg);   // se valida cada operación con el mismo plan que usará el taller
         cfg.ops.forEach((op, i) => { try { m = F.plan(m, op, cfg).final; } catch (e) { throw new Error('Operación ' + (i + 1) + ' («' + F.nombreOp(op, cfg) + '»): ' + e.message); } });
+        avisos.forEach(a => zona.appendChild(h('div', { class: 'panel', text: a })));
         zona.appendChild(h('div', { class: 'card flat', style: { marginTop: '8px' } }, h('div', { class: 'taller-lab' })));
         const w = TG.montar(U.$('.taller-lab', zona), cfg);
         w.onCompletar(r => { zona.appendChild(h('div', { class: 'panel', html: U.mdInline('🎉 **Terminaste.** Intentos fallidos: ' + r.fallos + ' · pistas: ' + r.pistas + '. Cambia las operaciones o elige otro ejemplo para seguir practicando.') })); });
       } catch (e) { zona.appendChild(h('div', { class: 'panel', style: { borderColor: 'var(--mal)' }, text: '⚠ ' + e.message })); }
     }
+    /** un heap min espejado (v → 100 − v) es un heap max con los mismos pasos: así los ejemplos respetan el tipo que elegiste */
+    const espejo = s => s.replace(/-?\d+/g, n => String(100 - Number(n)));
     const presets = h('div', { class: 'fila' }, C.presets.map(p => h('button', { type: 'button', class: 'btn sec peq', onclick: () => {
-      const d = p[1]; if (sel && d[C.selector.clave]) sel.value = d[C.selector.clave];
-      inV.value = d.vals; inOps.value = d.ops; if (inC) { inC.value = d.C || ''; inF.value = d.frente || ''; } alternarCirc(); comenzar();
+      const d = p[1]; let vals = d.vals, ops = d.ops;
+      if (fam === 'heap') { if (d.tipo !== sel.value) { vals = espejo(vals); ops = espejo(ops); } }   // el selector NO cambia: se adapta el ejemplo
+      else if (sel && d[C.selector.clave]) sel.value = d[C.selector.clave];
+      inV.value = vals; inOps.value = ops; if (inC) { inC.value = d.C || ''; inF.value = d.frente || ''; } alternarCirc(); comenzar();
     } }, p[0])));
     host.appendChild(h('div', { class: 'card flat' },
       h('div', { class: 'peq suave', style: { marginBottom: '6px' }, text: 'Ejemplos rápidos' }), presets,

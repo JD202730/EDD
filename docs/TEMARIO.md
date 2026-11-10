@@ -18,6 +18,8 @@ Análisis previo a la programación. Fuente principal: los PDF de clase del prof
 | **S4-C2** | Clase2_ListasEnlazadas | 24 | Nivel 12 (lista simple y doble, insertar, eliminar, Floyd) |
 | **S7-C2** | Clase2_HeapsColasPrioridad | — | Nivel 13 (heap min/max, bubble up/down, heapify, cola de prioridad, top-k, heapsort) |
 | **AP-S3-C1** | Clase1_Condicionales (Algoritmos y Programación 41333) | — | Nivel 14 (booleanas, if/elif/else, anidados, ternario) |
+| **S12-C1** | Clase1_BFS_DFS_Topologico | 19 | Nivel 15 (grafos, BFS, DFS, camino más corto sin pesos, islas). El archivo se llama «…Topologico», pero las diapositivas no tratan el orden topológico |
+| **S12-C2** | Clase2_CaminosMinimos | 36 | Nivel 16 (Dijkstra, relajación, pesos negativos, A*, Bellman-Ford, Floyd-Warshall, comparación) |
 
 > Los dos PDF de S2 no estaban en tu lista, pero están en la misma carpeta y el Nivel 2 (Big O) casi no tiene
 > contenido en los 4 adjuntos; los usé solo para alinear la terminología de ese nivel.
@@ -92,7 +94,7 @@ Conceptos de rojo-negro: `rn_def` (reglas, altura negra) · `rn_ins` (3 casos) �
 ### Nivel 8 — Retos integradores
 Combinan 1-7: elegir paradigma + complejidad, depurar recursión, BST→AVL, justificar decisiones, análisis completo de un algoritmo (preguntas "mixtas").
 
-## Niveles libres 9-14 (resto de las diapositivas y condicionales)
+## Niveles libres 9-16 (resto de las diapositivas, condicionales y grafos)
 
 Siempre desbloqueados: el avance y el umbral de la ruta principal solo cuentan los niveles 1-8. Cada nivel tiene su laboratorio animado y su banco (`js/banco_ext*.js`).
 
@@ -113,6 +115,12 @@ Siempre desbloqueados: el avance y el umbral de la ruta principal solo cuentan l
 
 ### Nivel 14 — Condicionales (Algoritmos y Programación, AP-S3-C1)
 `cd_bool` (expresiones booleanas, tablas de verdad) · `cd_if` (if, if-else, if-elif-else) · `cd_anid` (anidados, aplanado, operador ternario). *Complemento*: las leyes de De Morgan se usan para aplanar condiciones y se marcan como tal.
+
+### Nivel 15 — Grafos: BFS y DFS (S12-C1)
+`gr_def` (grafo, lista de adyacencia; *complemento*: las definiciones) · `gr_bfs` (cola, por niveles, marcar al encolar) · `gr_dfs` (pila o recursión; el iterativo sin invertir visita primero al último vecino) · `gr_vs` (cuál usar) · `gr_camino` (`prev` y camino más corto sin pesos) · `gr_islas` (islas y componentes) · `gr_cx` (O(V + E) y errores frecuentes). Laboratorio: `#/lab/grafos`.
+
+### Nivel 16 — Caminos mínimos (S12-C2)
+`cm_def` (grafo ponderado; BFS no sirve) · `cm_relaj` (relajación y predecesores) · `cm_dij` (Dijkstra: trueque de Rafael y grafo S → X) · `cm_neg` (por qué falla con pesos negativos) · `cm_astar` (f = g + h, heurística admisible) · `cm_bf` (Bellman-Ford) · `cm_fw` (Floyd-Warshall) · `cm_elegir` (comparación, costo en IA). *Complemento*: Dijkstra con heap y entradas obsoletas, la demostración del invariante. Laboratorio: `#/lab/caminos`.
 
 ### Quiz a mi medida
 Ruta `#/examen/config/quiz`: el usuario elige temas de la Biblioteca (y por tanto sus conceptos) y la mezcla de modalidades. **Teoría** = selección, V/F, abiertas; **interacción** = clasificar, ordenar, árboles/rotaciones y toda pregunta con figura o animación; **práctica** = el resto (código, salidas, tablas, complejidad). Los talleres de arrastrar nodos quedan fuera (son solo de práctica).

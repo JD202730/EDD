@@ -13,6 +13,7 @@ colas, listas enlazadas, heaps (min/max) y condicionales**. El contenido sale de
   cómo se califica ni cómo se desbloquea el avance, y todo se guarda con el resto del progreso. Reglas y diseño en
   [`docs/DISENO.md`](docs/DISENO.md). Tema claro (verde) y oscuro (grises cálidos + verde), menú lateral en escritorio y barra inferior en el teléfono,
   animaciones que se apagan con «reducir movimiento».
+* **🕸 Grafos: BFS, DFS y caminos mínimos** (*Laboratorio → Grafos: BFS y DFS* y *Caminos mínimos*; niveles libres **15** y **16**, S12-C1 y S12-C2): eliges el **problema** —grafo de la clase, grafo al azar, árbol (con el orden de visita numerado), red social (grados de separación), **laberinto** (siempre uno distinto, con construcción animada con DFS), **islas**, **mapa de calles** al estilo del mapa de GTA, mapa de ciudades de Colombia, el trueque de Rafael, un grafo con pesos negativos…—, **cuántos nodos** o qué tamaño tiene y el **algoritmo**: BFS, DFS recursivo e iterativo, BFS bidireccional, Dijkstra (con búsqueda lineal o con heap), A* (con heurística admisible, ninguna o sobrestimada), Bellman-Ford y Floyd-Warshall. Puedes **comparar dos algoritmos lado a lado** («¿cuál sale primero?»), mover el origen o el destino con un clic, ver la cola, la pila o la tabla de costos y el **código Python** con la línea que se ejecuta, y practicar tú el recorrido (modo «Practicar»). El motor es `js/sim_grafo.js` y `js/sim_grafo_alg.js`; sus resultados se comparan con implementaciones independientes y con el intérprete (`pruebaGrafo`).
 * **🎬 Animaciones paso a paso** (*Laboratorio*): lista enlazada simple y doble (insertar al inicio, al final y en una posición,
   eliminar, buscar, invertir, ciclos con la liebre y la tortuga), pilas (apilar, balanceo de símbolos, pila monótona), colas
   (`list.pop(0)` frente a `deque.popleft()`, deque y cola circular), arreglos (direcciones, prefijos, Kadane, dos punteros,
@@ -167,6 +168,10 @@ js/juego.js           monedas, vidas, escudos, meta diaria, logros, tienda y ret
 js/vistas_mapa.js     pantalla Aprender: mapa de unidades, nodos y hoja de información
 js/vistas_perfil.js   Perfil, Tienda y ventanas de logro
 js/vistas_practica.js lección de 10, Reto del nivel, repaso, reintento y resultados
+js/sim_grafo.js, sim_grafo_alg.js   grafos: modelo, generadores (laberinto, islas, mapa de calles, red social…), listados de código y trazas de BFS, DFS, Dijkstra, A*, Bellman-Ford, Floyd-Warshall
+js/vistas_grafos.js   Laboratorio de grafos (escenarios, comparación, lienzos de laberinto y mapa, modo práctica)
+js/temario_grafos.js, banco_ext4.js   niveles 15 y 16: conceptos y 37 plantillas
+js/teoria_gf.js, teoria_cm.js, teoria_extra_gf.js   Biblioteca: áreas «Grafos: BFS y DFS» y «Caminos mínimos» (14 temas, fórmulas, tablas, repaso)
 js/vistas_*.js, app.js   demás pantallas y enrutador (menú lateral / barra inferior)
 docs/TEMARIO.md       análisis de los PDF y temario organizado
 pruebas/              snippets, arneses y scripts de comparación con CPython
@@ -247,6 +252,7 @@ niveles están en la lista `niveles` del mismo archivo.
   migración de «Bosque» a «Uva»), persistencia y lectura de progreso guardado antes de existir el juego—; hace copia del progreso y la
   restaura al terminar. La interfaz se recorrió a mano en claro y oscuro, a 1 280 px y a 375 px (sin desbordes horizontales), con teclado, y las 18
   pantallas principales cargan sin errores.
+* **Grafos** (`pruebas/grafo_test.js`, botón «Grafos»): 1 485 comprobaciones —los listados de Python se ejecutan con el intérprete y dan lo mismo que la animación; BFS, DFS, Dijkstra, A*, Bellman-Ford, Floyd-Warshall, bidireccional e islas contra implementaciones independientes sobre cientos de grafos al azar; las cifras de las diapositivas (BFS A B C D E F G, DFS A B E F C G D, Dijkstra cierra S A C D B F E I X con 11 por S D E X, A* expande solo 6 nodos, trueque 35, peso negativo C = 3 frente a 0); que cada laberinto nuevo sea distinto y que el código de construcción haga laberintos perfectos—; el banco de los niveles 15 y 16 y la Biblioteca (109 bloques de código comparados con CPython) pasan sin fallos.
 * **Talleres interactivos:** 6 plantillas × 25 semillas (150 ejercicios) resueltos fase por fase por un robot: en cada fase se
   intenta primero un movimiento incorrecto (784 rechazos: el árbol no cambió ni avanzó la fase) y luego el correcto; el resultado
   final coincide con el AVL/BST calculado por el motor. Además se probaron a mano, con arrastre real del mouse, la inserción

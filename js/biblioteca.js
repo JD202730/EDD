@@ -33,6 +33,8 @@
     { id: 'pc', nombre: 'Pilas y colas', icono: '📚', color: '#eab308', nivel: 11, fuente: 'S3-C2 · S4-C1', desc: 'Pila (LIFO), balanceo de símbolos y pila monótona; cola (FIFO), por qué list es mala cola, deque y cola circular.' },
     { id: 'le', nombre: 'Listas enlazadas', icono: '🔗', color: '#06b6d4', nivel: 12, fuente: 'S4-C2', desc: 'Nodo, lista simple y doble, insertar y eliminar, comparación con el arreglo y detección de ciclos con la liebre y la tortuga.' },
     { id: 'cd', nombre: 'Condicionales (Algoritmos y Programación)', icono: '❓', color: '#64748b', nivel: 14, fuente: 'AP-S3-C1', desc: 'Expresiones booleanas y tablas de verdad, if / if-else / if-elif-else, anidados, aplanado y operador ternario (diapositivas de Algoritmos y Programación).' },
+    { id: 'gf', nombre: 'Grafos: BFS y DFS', icono: '🕸', color: '#0d9488', nivel: 15, fuente: 'S12-C1', desc: 'Grafo y lista de adyacencia; BFS con cola (por niveles) y DFS con pila o recursión; BFS frente a DFS; camino más corto sin pesos con prev; contar islas y componentes; costo O(V + E).' },
+    { id: 'cm', nombre: 'Caminos mínimos: Dijkstra y A*', icono: '🧭', color: '#be185d', nivel: 16, fuente: 'S12-C2', desc: 'Grafos ponderados y relajación; Dijkstra (greedy con cola de prioridad) y por qué falla con pesos negativos; A* con heurística admisible; Bellman-Ford; Floyd-Warshall y cómo elegir entre los cuatro.' },
     { id: 'ad', nombre: 'Temas adicionales', icono: '✚', color: '#8b5cf6', nivel: 8, fuente: 'Todos', desc: 'BST frente a tabla hash, conexiones con IA, trampas de Python para el examen y cómo responder preguntas tipo parcial.' }
   ];
   B.areaPorId = {}; B.areas.forEach(a => { B.areaPorId[a.id] = a; });

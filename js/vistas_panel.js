@@ -6,7 +6,7 @@
   const pct = x => (x === null || x === undefined) ? '—' : Math.round(x * 100) + ' %';
 
   /** laboratorio animado de cada nivel de estructuras: [pestaña del lab, texto] */
-  const LAB_NIVEL = { 7: ['rn', 'árbol rojo-negro'], 9: ['memoria', 'memoria y referencias'], 10: ['arreglos', 'arreglos y técnicas'], 11: ['pilas', 'pilas y colas'], 12: ['listas', 'listas enlazadas'], 13: ['heap', 'heaps'] };
+  const LAB_NIVEL = { 7: ['rn', 'árbol rojo-negro'], 9: ['memoria', 'memoria y referencias'], 10: ['arreglos', 'arreglos y técnicas'], 11: ['pilas', 'pilas y colas'], 12: ['listas', 'listas enlazadas'], 13: ['heap', 'heaps'], 15: ['grafos', 'grafos: BFS y DFS'], 16: ['caminos', 'caminos mínimos'] };
   V.LAB_NIVEL = LAB_NIVEL;   // el mapa de aprendizaje enlaza el laboratorio de cada nivel
   V.nivel = function (host, args) {
     const n = +args[0]; const l = Tm.niveles[n - 1]; if (!l) { location.hash = '#/panel'; return; }

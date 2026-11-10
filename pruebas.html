@@ -9,7 +9,7 @@
 </head>
 <body>
 <h1>Pruebas internas</h1>
-<p>Esta página ejecuta las pruebas automáticas del entrenador. <button id="btn-py">Intérprete de Python</button> <button id="btn-todo">Banco completo</button> <button id="btn-avl">Árboles AVL vs CPython</button> <button id="btn-taller">Talleres interactivos</button> <button id="btn-medir">Complejidades medidas</button> <button id="btn-traza">Código ↔ árbol</button> <button id="btn-bib">Biblioteca</button> <button id="btn-juego">Juego</button></p>
+<p>Esta página ejecuta las pruebas automáticas del entrenador. <button id="btn-py">Intérprete de Python</button> <button id="btn-todo">Banco completo</button> <button id="btn-avl">Árboles AVL vs CPython</button> <button id="btn-taller">Talleres interactivos</button> <button id="btn-medir">Complejidades medidas</button> <button id="btn-traza">Código ↔ árbol</button> <button id="btn-bib">Biblioteca</button> <button id="btn-juego">Juego</button> <button id="btn-grafo">Grafos (BFS, DFS, Dijkstra)</button></p>
 <pre id="out">Pulsa un botón…</pre>
 <script src="js/util.js"></script>
 <script src="js/pyparse.js"></script>
@@ -24,10 +24,13 @@
 <script src="js/sim_heap.js"></script>
 <script src="js/sim_rn.js"></script>
 <script src="js/sim_memoria.js"></script>
+<script src="js/sim_grafo.js"></script>
+<script src="js/sim_grafo_alg.js"></script>
 <script src="js/traza.js"></script>
 <script src="js/ejemplos_codigo.js"></script>
 <script src="js/temario.js"></script>
 <script src="js/temario_ext.js"></script>
+<script src="js/temario_grafos.js"></script>
 <script src="js/editor.js"></script>
 <script src="js/codigo_arbol.js"></script>
 <script src="js/tipos.js"></script>
@@ -57,6 +60,7 @@
 <script src="js/banco_ext.js"></script>
 <script src="js/banco_ext2.js"></script>
 <script src="js/banco_ext3.js"></script>
+<script src="js/banco_ext4.js"></script>
 <script src="js/banco_taller_ext.js"></script>
 <script src="js/banco_retiro.js"></script>
 <script src="js/motor.js"></script>
@@ -82,6 +86,9 @@
 <script src="js/teoria_tablas.js"></script>
 <script src="js/teoria_repaso.js"></script>
 <script src="js/teoria_extra.js"></script>
+<script src="js/teoria_gf.js"></script>
+<script src="js/teoria_cm.js"></script>
+<script src="js/teoria_extra_gf.js"></script>
 <script src="js/vistas_comunes.js"></script>
 <script src="js/vistas_estructuras.js"></script>
 <script src="js/vistas_biblioteca.js"></script>
@@ -95,5 +102,6 @@
 <script src="pruebas/cobertura_pdf.js"></script>
 <script src="pruebas/biblioteca_test.js"></script>
 <script src="pruebas/juego_test.js"></script>
+<script src="pruebas/grafo_test.js"></script>
 </body>
 </html>

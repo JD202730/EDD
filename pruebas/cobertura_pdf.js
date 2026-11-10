@@ -99,6 +99,27 @@
     ['S7-C1', '33-34', ['std::map', 'treemap', 'planificador de linux', 'lectura', 'escritura', 'bases de datos', 'elegir es diseñar']],
     ['S7-C1', '35-38', ['[10, 20, 30, 40, 50]', 'cuatro casos', 'rojo-negro', 'más laxo', 'preserva el inorden']],
     ['S7-C1', '42-44', ['rotar_derecha', 'rotar_izquierda', 'actualizar', 'balance(n.izq)', 'suc = n.der']],
-    ['S7-C1', '45-49', ['centinela', 'arbolrn', 'rotar_izq', 'arreglar_ins', 'arreglar_del', '_trans', 'negro de más', 'rama espejo']]
+    ['S7-C1', '45-49', ['centinela', 'arbolrn', 'rotar_izq', 'arreglar_ins', 'arreglar_del', '_trans', 'negro de más', 'rama espejo']],
+    /* ---- S12-C1 · Recorridos de grafos: BFS y DFS (19 diapositivas) ---- */
+    ['S12-C1', '2', ['conjunto de visitados', 'o(v + e)', 'islas']],
+    ['S12-C1', '4', ['laberinto', 'profundidad', 'anchura']],
+    ['S12-C1', '5', ['nivel por nivel', 'cola', 'fifo', 'visitados', 'a, b, c, d', 'e, f, g']],
+    ['S12-C1', '6', ['desencola', 'orden bfs']],
+    ['S12-C1', '7', ['al encolar', 'o(v + e)']],
+    ['S12-C1', '8', ['prev', 'reconstruir', 'camino más corto']],
+    ['S12-C1', '9-10', ['pila de llamadas', 'recursivo', 'iterativo', 'retroceder', 'a b e f c g d']],
+    ['S12-C1', '11', ['camino más corto', 'backtracking', 'regla mnemotécnica']],
+    ['S12-C1', '12', ['número de islas', 'o(m × n)', 'bfs iterativo', 'desbordar la pila']],
+    ['S12-C1', '13-14', ['red social', 'ciclo', 'cualquier camino', 'componentes']],
+    ['S12-C1', '15', ['olvidar el conjunto de visitados', 'marcar visitado al desencolar', 'desbordar la pila']],
+    /* ---- S12-C2 · Caminos mínimos (36 diapositivas) ---- */
+    ['S12-C2', '4-5', ['3 calles cortas', '1 autopista', 'grafo ponderado', 'camino mínimo', 'suma de pesos']],
+    ['S12-C2', '6', ['greedy', 'cola de prioridad', 'relajación', 'pesos no negativos', 'predecesor']],
+    ['S12-C2', '7-15', ['trueque', 'audífonos', 'pc gamer', 'tarjeta', 'stickers', 'reloj', 'tableta']],
+    ['S12-C2', '17-19', ['o(v²)', 'o(e log v)', 'heap', 's d e x', 'distancia mínima']],
+    ['S12-C2', '20-24', ['f(v) = d(v) + h(v)', 'admisible', 'gps', 'manhattan', 'línea recta', 'h = 0']],
+    ['S12-C2', '25-26', ['bellman-ford', 'floyd-warshall', 'o(v · e)', 'o(v³)', 'origen a todos', 'todos los pares']],
+    ['S12-C2', '27-30', ['arbitraje', '50 estaciones', 'mcp41', 'horas']],
+    ['S12-C2', '32', ['usar dijkstra con pesos negativos', 'entradas obsoletas', 'heurística no admisible']]
   ];
 })();

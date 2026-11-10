@@ -16,7 +16,7 @@
     'S7-C2': 'Clase2_HeapsColasPrioridad (Semana 7, Clase 2)',
     'AP-S3-C1': 'Clase1_Condicionales (Algoritmos y Programación 41333, Semana 3, Clase 1)'
   });
-  const GRUPO = 'Estructuras del primer corte, heaps y condicionales';
+  const GRUPO = 'Estructuras del primer corte, heaps, condicionales y grafos';
   [
     { id: 9, nombre: 'TAD y memoria', icono: '🧠', color: '#14b8a6', fuente: 'S1-C1 · S1-C2', resumen: 'Estructura de datos y TAD (interfaz frente a implementación), pila y montículo, memoria estática y dinámica, referencias, alias, copias y localidad de caché.' },
     { id: 10, nombre: 'Arreglos y técnicas', icono: '▦', color: '#f97316', fuente: 'S3-C1', resumen: 'Operaciones del arreglo y aritmética de direcciones; suma de prefijos, Kadane, dos punteros, ventana deslizante y merge intervals.' },

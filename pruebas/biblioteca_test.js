@@ -13,7 +13,7 @@
 
     /* ---- 1. estructura ---- */
     check(B.problemas.length === 0, 'problemas de registro: ' + B.problemas.join(' | '));
-    check(B.areas.length === 15, 'debe haber 15 áreas (hay ' + B.areas.length + ')');
+    check(B.areas.length === 17, 'debe haber 17 áreas (hay ' + B.areas.length + ')');
     B.areas.forEach(a => check(B.temasDeArea(a.id).length > 0, 'área sin temas: ' + a.id));
     const ids = new Set();
     B.temas.forEach(t => {
